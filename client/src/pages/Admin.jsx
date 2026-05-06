@@ -173,7 +173,7 @@ export default function Admin() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 14, marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 14, marginBottom: 24 }}>
           {[
             { label: 'Total',        value: stats.total,       color: 'var(--blue)' },
             { label: 'Shortlisted',  value: stats.shortlisted, color: 'var(--emerald)' },
@@ -213,7 +213,7 @@ export default function Admin() {
           </span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: 20 }}>
+        <div className="admin-main-grid" style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: 20 }}>
           {/* Table */}
           <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
             {loading ? (
@@ -405,7 +405,7 @@ export default function Admin() {
                   <input className="input" required value={newInterview.companyName} onChange={e => setNewInterview({...newInterview, companyName: e.target.value})} placeholder="e.g. TechCorp India" />
                 </div>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
                   <div>
                     <label className="label">Role Applying For</label>
                     <select className="select" required value={newInterview.role} onChange={e => setNewInterview({...newInterview, role: e.target.value})}>
@@ -450,6 +450,13 @@ export default function Admin() {
           </div>
         </div>
       )}
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-main-grid { grid-template-columns: 1fr !important; }
+          .admin-navbar-actions { gap: 8px !important; }
+          .admin-navbar-actions .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+        }
+      `}</style>
     </div>
   );
 }

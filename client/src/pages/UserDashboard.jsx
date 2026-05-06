@@ -125,7 +125,7 @@ export default function UserDashboard() {
     <div style={{ minHeight: '100vh', background: '#FAFAFA', color: '#111827', fontFamily: 'Inter, system-ui, sans-serif' }}>
       
       {/* Top Navigation - Linear/Stripe Inspired */}
-      <nav style={{ 
+      <nav className="ud-nav" style={{ 
         position: 'sticky', top: 0, zIndex: 100, 
         background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
@@ -134,11 +134,12 @@ export default function UserDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
           <span style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#111827' }}>HireVaani</span>
           <div style={{ width: 1, height: 16, background: '#E5E7EB' }}></div>
-          <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#6B7280', background: '#F3F4F6', padding: '4px 10px', borderRadius: '6px' }}>Candidate</span>
+          <span className="ud-nav-badge" style={{ fontSize: '0.85rem', fontWeight: 500, color: '#6B7280', background: '#F3F4F6', padding: '4px 10px', borderRadius: '6px' }}>Candidate</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <button 
+            className="ud-start-btn"
             onClick={() => setShowQuickStart(true)}
             style={{ 
               background: '#111827', color: '#fff', border: 'none', 
@@ -164,7 +165,7 @@ export default function UserDashboard() {
             </button>
 
             {showNotifications && (
-              <div style={{ 
+              <div className="ud-notif-dropdown" style={{ 
                 position: 'absolute', top: 'calc(100% + 12px)', right: -10, width: 320, 
                 background: '#FFFFFF',
                 border: '1px solid #E5E7EB', borderRadius: '12px',
@@ -221,10 +222,10 @@ export default function UserDashboard() {
         </div>
       </nav>
 
-      <main style={{ maxWidth: 1080, margin: '0 auto', padding: '40px 24px 80px' }}>
+      <main className="ud-main" style={{ maxWidth: 1080, margin: '0 auto', padding: '40px 24px 80px' }}>
         
         {/* Hero Section */}
-        <div style={{ marginBottom: 48 }}>
+        <div className="ud-hero" style={{ marginBottom: 48 }}>
           <h1 style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#111827', marginBottom: 8 }}>
             {getGreeting()}, {user.name.split(' ')[0]}
           </h1>
@@ -339,20 +340,20 @@ export default function UserDashboard() {
 
       {/* View Details Modal */}
       {selectedInterview && (
-        <div style={{ 
+        <div className="ud-modal-overlay" style={{ 
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
           background: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           animation: 'fadeIn 0.2s ease-out'
         }} onClick={() => setSelectedInterview(null)}>
-          <div style={{ 
+          <div className="ud-modal-box" style={{ 
             background: '#FFFFFF', width: '100%', maxWidth: 640, borderRadius: '16px',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
             overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '90vh'
           }} onClick={e => e.stopPropagation()}>
             
             {/* Modal Header */}
-            <div style={{ padding: '24px 32px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="ud-modal-header" style={{ padding: '24px 32px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <div style={{ width: 48, height: 48, borderRadius: '10px', background: '#F3F4F6', color: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', fontWeight: 600 }}>
                   {selectedInterview.companyName.charAt(0)}
@@ -368,7 +369,7 @@ export default function UserDashboard() {
             </div>
             
             {/* Modal Body */}
-            <div style={{ padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 28 }}>
+            <div className="ud-modal-body" style={{ padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 28 }}>
               
               <div style={{ display: 'flex', gap: 12 }}>
                 <span style={{ background: '#F3F4F6', color: '#374151', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 500 }}>
@@ -400,7 +401,7 @@ export default function UserDashboard() {
                 <p style={{ fontSize: '0.85rem', color: '#1E3A8A', margin: 0, lineHeight: 1.5 }}>{selectedInterview.instructions}</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="ud-modal-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div style={{ border: '1px solid #E5E7EB', borderRadius: '8px', padding: '16px' }}>
                   <div style={{ fontSize: '0.75rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Resume Status</div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 500, color: selectedInterview.resumeUploaded ? '#059669' : '#D97706' }}>
@@ -417,7 +418,7 @@ export default function UserDashboard() {
             </div>
 
             {/* Modal Footer */}
-            <div style={{ padding: '20px 32px', background: '#F9FAFB', borderTop: '1px solid #E5E7EB', display: 'flex', gap: 12, justifyContent: 'flex-end', alignItems: 'center' }}>
+            <div className="ud-modal-footer" style={{ padding: '20px 32px', background: '#F9FAFB', borderTop: '1px solid #E5E7EB', display: 'flex', gap: 12, justifyContent: 'flex-end', alignItems: 'center' }}>
               <button style={{ background: 'transparent', border: 'none', color: '#6B7280', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', marginRight: 'auto' }}>
                 Need help?
               </button>
@@ -518,6 +519,27 @@ export default function UserDashboard() {
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 640px) {
+          /* Navbar */
+          .ud-nav { padding: 0 16px !important; height: 56px !important; }
+          .ud-nav-badge { display: none !important; }
+          .ud-start-btn { padding: 6px 10px !important; font-size: 0.8rem !important; }
+
+          /* Main content */
+          .ud-main { padding: 24px 16px 60px !important; }
+          .ud-hero h1 { font-size: 1.5rem !important; }
+
+          /* Modals — slide up from bottom on mobile */
+          .ud-modal-box { border-radius: 16px 16px 0 0 !important; max-height: 95vh !important; }
+          .ud-modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+          .ud-modal-header { padding: 16px 20px !important; }
+          .ud-modal-body { padding: 20px !important; gap: 16px !important; }
+          .ud-modal-footer { padding: 14px 20px !important; }
+          .ud-modal-grid { grid-template-columns: 1fr !important; }
+
+          /* Notification dropdown — full width on mobile */
+          .ud-notif-dropdown { width: calc(100vw - 32px) !important; right: -60px !important; }
         }
       `}</style>
     </div>

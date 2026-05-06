@@ -354,7 +354,28 @@ a:hover { text-decoration: underline; }
   background: var(--bg-secondary);
 }
 
+/* ── Responsive ── */
 @media (max-width: 768px) {
   .container { padding: 0 16px; }
-  .navbar { padding: 0 16px; }
+  .navbar { padding: 0 16px; height: 56px; }
+  
+  /* Typography scale down */
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.25rem; }
+
+  /* Table — horizontal scroll on mobile */
+  .table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Modal — full screen on mobile */
+  .modal-content { max-width: 100%; max-height: 100vh; border-radius: 0; }
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal-header { padding: 16px 20px; }
+  .modal-body { padding: 20px; gap: 16px; }
+  .modal-footer { padding: 16px 20px; }
+
+  /* Toast — full width on mobile */
+  .toast { left: 16px; right: 16px; bottom: 16px; max-width: none; text-align: center; }
+
+  /* Cards — no hover lift on mobile (touch devices) */
+  .card:hover { transform: none; }
 }
