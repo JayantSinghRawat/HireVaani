@@ -19,55 +19,7 @@ const LANGUAGES = [
   { value: 'kn', label: 'Kannada' },
 ];
 
-const generateMockInterviews = () => {
-  const now = new Date();
-  
-  const date1 = new Date(now.getTime() + 10 * 60000);
-  const date2 = new Date(now.getTime() + 24 * 60 * 60000);
-  const date3 = new Date(now.getTime() + 72 * 60 * 60000);
 
-  return [
-    {
-      id: 'mock-1',
-      companyName: 'TechCorp India',
-      role: 'software_engineer',
-      date: date1,
-      mode: 'AI Video',
-      status: 'Scheduled',
-      description: 'Technical round focusing on React and Node.js fundamentals, system design, and algorithmic problem solving.',
-      requiredSkills: ['React', 'Node.js', 'System Design'],
-      instructions: 'Ensure you have a stable internet connection. The AI will ask 5 questions based on your resume and role.',
-      resumeUploaded: true,
-      progress: '0%'
-    },
-    {
-      id: 'mock-2',
-      companyName: 'DataWiz Analytics',
-      role: 'data_analyst',
-      date: date2,
-      mode: 'AI Video',
-      status: 'Scheduled',
-      description: 'Data analytics interview focusing on SQL, Python, and Dashboard creation.',
-      requiredSkills: ['SQL', 'Python', 'Tableau'],
-      instructions: 'You may use a pen and paper. Keep your webcam on at all times.',
-      resumeUploaded: true,
-      progress: '0%'
-    },
-    {
-      id: 'mock-3',
-      companyName: 'Global Sales Inc',
-      role: 'sales_executive',
-      date: date3,
-      mode: 'AI Audio',
-      status: 'Pending Review',
-      description: 'First round audio interview focusing on communication and basic sales pitches.',
-      requiredSkills: ['Communication', 'Negotiation'],
-      instructions: 'Audio only. Ensure you are in a quiet room.',
-      resumeUploaded: false,
-      progress: '0%'
-    }
-  ];
-};
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -100,7 +52,22 @@ export default function UserDashboard() {
       // ignore
     }
     
-    setInterviews(generateMockInterviews());
+    const fetchInterviews = async () => {
+      try {
+        const { data } = await axios.get(`${API}/interviews`);
+        const parsed = data.map(i => ({
+          ...i,
+          date: new Date(i.date),
+          id: i.id || i._id,
+          progress: i.progress || '0%',
+          resumeUploaded: i.resumeUploaded ?? true,
+        }));
+        setInterviews(parsed);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchInterviews();
 
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
@@ -151,7 +118,7 @@ export default function UserDashboard() {
 
   const isJoinable = (targetDate) => {
     const diff = targetDate.getTime() - now.getTime();
-    return diff <= 15 * 60000 && diff >= -60 * 60000;
+    return diff <= 15 * 60000; // Allow joining up to 15 mins before, and anytime after
   };
 
   return (

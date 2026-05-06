@@ -15,6 +15,7 @@ app.use('/api/session',    require('./src/routes/session'));
 app.use('/api/transcribe', require('./src/routes/transcribe'));
 app.use('/api/evaluate',   require('./src/routes/evaluate'));
 app.use('/api/candidates', require('./src/routes/candidates'));
+app.use('/api/interviews', require('./src/routes/interviews'));
 app.use('/api/auth',       require('./src/routes/auth'));
 
 // ── Health check ────────────────────────────────────────

@@ -39,6 +39,18 @@ export default function Admin() {
   const [saving,     setSaving]      = useState(false);
   const [toast,      setToast]       = useState('');
 
+  const [showAddInterview, setShowAddInterview] = useState(false);
+  const [newInterview, setNewInterview] = useState({
+    companyName: 'TechCorp India',
+    role: 'software_engineer',
+    date: new Date(Date.now() + 86400000).toISOString().slice(0,16),
+    description: '',
+    requiredSkills: '',
+    instructions: '',
+    customQuestions: ''
+  });
+  const [creatingInterview, setCreatingInterview] = useState(false);
+
   const authH = { headers: { Authorization: `Bearer ${token}` } };
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
@@ -74,6 +86,26 @@ export default function Admin() {
       showToast('Saved successfully');
     } catch { showToast('Save failed — please try again'); }
     finally { setSaving(false); }
+  };
+
+  const handleCreateInterview = async (e) => {
+    e.preventDefault();
+    setCreatingInterview(true);
+    try {
+      const payload = {
+        ...newInterview,
+        requiredSkills: newInterview.requiredSkills.split(',').map(s => s.trim()).filter(Boolean),
+        customQuestions: newInterview.customQuestions.split('\n').map(q => q.trim()).filter(Boolean),
+        date: new Date(newInterview.date).toISOString()
+      };
+      await axios.post(`${API}/interviews`, payload, authH);
+      showToast('Interview created successfully!');
+      setShowAddInterview(false);
+    } catch (err) {
+      showToast('Failed to create interview');
+    } finally {
+      setCreatingInterview(false);
+    }
   };
 
   const handleLogout = () => { 
@@ -112,6 +144,7 @@ export default function Admin() {
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button className="btn btn-primary btn-sm" onClick={() => setShowAddInterview(true)}>+ Add Interview</button>
           <button className="btn btn-ghost btn-sm" onClick={fetchCandidates}>Refresh</button>
           <div style={{ width: 1, height: 16, background: 'var(--border)' }}></div>
           
@@ -347,6 +380,76 @@ export default function Admin() {
       </div>
 
       {toast && <div className="toast">{toast}</div>}
+
+      {/* Add Interview Modal */}
+      {showAddInterview && (
+        <div style={{ 
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
+          background: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24
+        }} onClick={() => setShowAddInterview(false)}>
+          <div style={{ 
+            background: 'var(--bg-primary)', width: '100%', maxWidth: 600, borderRadius: '16px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', overflow: 'hidden',
+            maxHeight: '90vh', display: 'flex', flexDirection: 'column'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>Create New Interview</h3>
+              <button onClick={() => setShowAddInterview(false)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }}>✕</button>
+            </div>
+            
+            <div style={{ padding: '24px 32px', overflowY: 'auto' }}>
+              <form id="add-interview-form" onSubmit={handleCreateInterview}>
+                <div style={{ marginBottom: 16 }}>
+                  <label className="label">Company Name</label>
+                  <input className="input" required value={newInterview.companyName} onChange={e => setNewInterview({...newInterview, companyName: e.target.value})} placeholder="e.g. TechCorp India" />
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <label className="label">Role Applying For</label>
+                    <select className="select" required value={newInterview.role} onChange={e => setNewInterview({...newInterview, role: e.target.value})}>
+                      {Object.entries(ROLE_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Date & Time</label>
+                    <input type="datetime-local" className="input" required value={newInterview.date} onChange={e => setNewInterview({...newInterview, date: e.target.value})} />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <label className="label">Job Description</label>
+                  <textarea className="textarea" rows={2} required value={newInterview.description} onChange={e => setNewInterview({...newInterview, description: e.target.value})} placeholder="Briefly describe the role..." />
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <label className="label">Required Skills (comma separated)</label>
+                  <input className="input" required value={newInterview.requiredSkills} onChange={e => setNewInterview({...newInterview, requiredSkills: e.target.value})} placeholder="e.g. React, Node.js, SQL" />
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <label className="label">Instructions for Candidate</label>
+                  <textarea className="textarea" rows={2} required value={newInterview.instructions} onChange={e => setNewInterview({...newInterview, instructions: e.target.value})} placeholder="e.g. Ensure you have a stable internet connection..." />
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <label className="label">Custom Questions (One per line)</label>
+                  <textarea className="textarea" rows={4} value={newInterview.customQuestions} onChange={e => setNewInterview({...newInterview, customQuestions: e.target.value})} placeholder="Enter custom questions you'd like the AI to ask, one per line..." />
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>These questions will be prioritized by the AI interviewer.</div>
+                </div>
+              </form>
+            </div>
+            
+            <div style={{ padding: '20px 32px', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <button onClick={() => setShowAddInterview(false)} className="btn btn-ghost">Cancel</button>
+              <button form="add-interview-form" type="submit" className="btn btn-primary" disabled={creatingInterview}>
+                {creatingInterview ? 'Creating...' : 'Create Interview'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

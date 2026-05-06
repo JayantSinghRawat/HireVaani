@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   server:
@@ -10,6 +9,9 @@ services:
       - ./server/.env
     environment:
       - PORT=5000
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     restart: unless-stopped
 
   client:
