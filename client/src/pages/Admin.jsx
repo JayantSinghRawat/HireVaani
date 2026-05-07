@@ -228,7 +228,11 @@ export default function Admin() {
           {selected && (
             <div className="detail-sidebar card">
               <div className="s-header">
-                <div><h4>{selected.name}</h4><span className="s-email">{selected.email}</span></div>
+                <div>
+                  <h4 style={{ marginBottom: 2 }}>{selected.name}</h4>
+                  <span className="s-email" style={{ display: 'block', marginBottom: 4 }}>{selected.email || 'No email provided'}</span>
+                  <span className="badge badge-gray" style={{ fontSize: '0.65rem' }}>ID: {selected.sessionId.slice(0,8)}</span>
+                </div>
                 <button className="btn-close" onClick={() => setSelected(null)}>✕</button>
               </div>
               <div className="s-stats">
@@ -246,7 +250,12 @@ export default function Admin() {
                   ))}
                 </div>
               )}
-              {selected.fitmentReason && <div className="s-reason"><strong>AI:</strong> {selected.fitmentReason}</div>}
+              {selected.fitmentReason && (
+                <div className="s-reason" style={{ background: '#F0FDFA', border: '1px solid #5EEAD4', color: '#0F766E' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: 6, letterSpacing: '0.05em' }}>AI Interview Summary</div>
+                  <div style={{ fontSize: '0.88rem', lineHeight: 1.6 }}>{selected.fitmentReason}</div>
+                </div>
+              )}
               <div className="s-notes">
                 <label>Admin Notes</label>
                 <textarea className="textarea" rows={3} value={editNotes} onChange={e => setEditNotes(e.target.value)} />

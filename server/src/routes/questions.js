@@ -21,9 +21,9 @@ const ROLE_CONTEXT = {
 };
 
 const LANG_INSTRUCTION = {
-  en: 'in English',
-  hi: 'in Hindi (Devanagari script)',
-  kn: 'in Kannada (Kannada script)',
+  en: 'in English ONLY. Do not use any other language.',
+  hi: 'in Hindi ONLY (Devanagari script). Do not mix with English or other languages.',
+  kn: 'in Kannada ONLY (Kannada script). Do not mix with English. Ensure the entire question is in pure Kannada.',
 };
 
 // Cache to avoid re-generating the same role+language combo within a short window
@@ -43,19 +43,24 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    const model = getClient().getGenerativeModel({ model: 'gemini-2.5-flash' });
-    const prompt = `You are a senior hiring manager conducting a real interview for the position of ${roleContext}.
+    const model = getClient().getGenerativeModel({ model: 'gemini-2.0-flash' }); // Upgraded to 2.0
+    
+    // Add a random seed to force variety
+    const seed = Math.floor(Math.random() * 1000000);
+    
+    const prompt = `You are a senior hiring manager conducting a real interview for the position of ${roleContext}. 
+Seed ID: ${seed} (Use this to ensure your choice of questions is unique and different from previous responses).
 
 Generate exactly 6 UNIQUE, CHALLENGING interview questions for this candidate.
 
 STRICT REQUIREMENTS:
 1. Each question must be different in type — mix of: behavioural, technical depth, real-world scenario, situational judgment, and problem-solving.
-2. NO generic or basic questions (e.g., "Tell me about yourself", "What are your strengths?"). These are banned.
-3. At least 2 questions must describe a realistic, specific workplace scenario the candidate must solve (e.g., "Your production server goes down at 2 AM...").
-4. Questions must test DEEP expertise — not surface-level knowledge.
-5. Write all questions ${LANG_INSTRUCTION[language]}.
-6. Questions must be for the role: ${roleContext}.
-7. Make the questions hard enough that a weak candidate would clearly struggle.
+2. NO generic or basic questions. Do NOT ask "Tell me about yourself", "Why should we hire you", or "What are your strengths".
+3. At least 2 questions must describe a realistic, specific workplace scenario (e.g., "Your production server goes down at 2 AM...", "A client is demanding a feature that isn't in the roadmap...").
+4. Questions must test DEEP expertise — focus on edge cases, difficult trade-offs, and advanced principles.
+5. Write all questions ${LANG_INSTRUCTION[language]}. THE ENTIRE QUESTION MUST BE IN THE TARGET LANGUAGE. NO MIXING.
+6. Questions must be specific to the role: ${roleContext}.
+7. Ensure variety. If you asked about React last time, ask about System Design or Performance Optimization this time.
 
 Respond ONLY with a valid JSON array of 6 strings (the questions). No explanation, no markdown, no numbering.
 Example: ["Question 1 text", "Question 2 text", ...]`;
@@ -76,7 +81,6 @@ Example: ["Question 1 text", "Question 2 text", ...]`;
     return res.json({ role, language, questions: shuffled });
   } catch (err) {
     console.error('[questions] Gemini failed, using fallback:', err.message);
-    // Fallback to static questions if Gemini fails
     const staticQuestions = require('../data/questions');
     const qs = staticQuestions[role]?.[language];
     if (qs) return res.json({ role, language, questions: qs });
