@@ -6,17 +6,40 @@ const memStore = require('../data/memStore');
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
-// All candidates routes require admin/organizer auth
+// ALL routes require auth
 router.use(auth);
-router.use((req, res, next) => {
+
+// GET /api/candidates/history – Get own interview history (Candidate/User)
+router.get('/history', async (req, res) => {
+  try {
+    const email = req.user.email;
+    if (!email) return res.status(400).json({ error: 'User email missing from token' });
+
+    let data;
+    if (isMongoConnected()) {
+      data = await Candidate.find({ email: email.trim().toLowerCase() }).sort({ createdAt: -1 });
+    } else {
+      data = [...memStore.values()]
+        .filter(c => c.email && c.email.trim().toLowerCase() === email.trim().toLowerCase())
+        .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── ADMIN ONLY ROUTES ───────────────────────────────────
+
+const checkOrganizer = (req, res, next) => {
   if (req.user?.role !== 'organizer') {
     return res.status(403).json({ error: 'Forbidden: Organizer access required' });
   }
   next();
-});
+};
 
 // GET /api/candidates  – list all
-router.get('/', async (req, res) => {
+router.get('/', checkOrganizer, async (req, res) => {
   try {
     let data;
     if (isMongoConnected()) {
@@ -32,7 +55,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/candidates/:sessionId  – full detail with answers
-router.get('/:sessionId', async (req, res) => {
+router.get('/:sessionId', checkOrganizer, async (req, res) => {
   try {
     let data;
     if (isMongoConnected()) {
@@ -48,7 +71,7 @@ router.get('/:sessionId', async (req, res) => {
 });
 
 // PATCH /api/candidates/:sessionId  – update status / notes / decision
-router.patch('/:sessionId', async (req, res) => {
+router.patch('/:sessionId', checkOrganizer, async (req, res) => {
   try {
     const { fitmentDecision, status, adminNotes } = req.body;
     const update = {};
