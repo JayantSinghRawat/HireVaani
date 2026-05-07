@@ -121,8 +121,6 @@ The application will be accessible at `http://localhost:5173`.
 
 
 
----
-
 ## 📊 Evaluation & Proctoring
 
 ### AI Skill Radar
@@ -140,7 +138,7 @@ The system tracks the candidate's presence in real-time:
 
 ---
 
-## 👥 Team — The Visionaries
+## 👥 Team — HireVaani
 
 *   **Harshitha GG**
 *   **Ishita Gautam**
@@ -148,8 +146,3 @@ The system tracks the candidate's presence in real-time:
 
 **Hackathon:** AI for Bharat · Theme 5: AI SkillFit
 
----
-
-## 📄 License
-
-MIT — Built with ❤️ for the AI for Bharat Hackathon.
