@@ -38,7 +38,8 @@ export default function Admin() {
   const [newIv, setNewIv] = useState({
     companyName: 'HireVaani',
     role: '',
-    date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
     description: '',
     instructions: 'Please ensure you are in a quiet room with good lighting.'
   });
@@ -224,7 +225,10 @@ export default function Admin() {
                     </div>
 
                     <div className="iv-footer">
-                      <span className="iv-date">{new Date(iv.date).toLocaleDateString()}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span className="iv-date" style={{ fontSize: '0.7rem' }}><b>Starts:</b> {new Date(iv.startDate || iv.createdAt).toLocaleDateString()}</span>
+                        <span className="iv-date" style={{ fontSize: '0.7rem' }}><b>Ends:</b> {new Date(iv.endDate || iv.date).toLocaleDateString()}</span>
+                      </div>
                       <span className="badge badge-gray">View Candidates →</span>
                     </div>
                   </div>
@@ -389,10 +393,16 @@ export default function Admin() {
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 8, color: '#6B7280', textTransform: 'uppercase' }}>Interview Role</label>
                 <input className="input" placeholder="e.g. Senior Teacher" value={newIv.role} onChange={e => setNewIv({ ...newIv, role: e.target.value })} required />
               </div>
-              <div className="form-group" style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 8, color: '#6B7280', textTransform: 'uppercase' }}>Deadline Date</label>
-                <input className="input" type="date" value={newIv.date} onChange={e => setNewIv({ ...newIv, date: e.target.value })} required />
-              </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                  <div className="form-group">
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 8, color: '#6B7280', textTransform: 'uppercase' }}>Starting Date</label>
+                    <input className="input" type="date" value={newIv.startDate} onChange={e => setNewIv({ ...newIv, startDate: e.target.value })} required />
+                  </div>
+                  <div className="form-group">
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 8, color: '#6B7280', textTransform: 'uppercase' }}>Deadline Date</label>
+                    <input className="input" type="date" value={newIv.endDate} onChange={e => setNewIv({ ...newIv, endDate: e.target.value })} required />
+                  </div>
+                </div>
               <div className="form-group" style={{ marginBottom: 24 }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 8, color: '#6B7280', textTransform: 'uppercase' }}>Role Description</label>
                 <textarea className="textarea" rows={3} placeholder="Key requirements..." value={newIv.description} onChange={e => setNewIv({ ...newIv, description: e.target.value })} />

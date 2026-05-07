@@ -10,7 +10,8 @@ const demoInterview = {
   _id: new mongoose.Types.ObjectId().toString(),
   companyName: 'TechCorp India',
   role: 'software_engineer',
-  date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  startDate: new Date().toISOString(),
+  endDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   mode: 'AI Video',
   status: 'Scheduled',
   description: 'Technical round focusing on React and Node.js fundamentals, system design, and algorithmic problem solving.',
@@ -47,10 +48,10 @@ router.get('/', async (req, res) => {
   try {
     let data;
     if (isMongoConnected()) {
-      const dbInterviews = await Interview.find({}).sort({ date: 1 });
+      const dbInterviews = await Interview.find({}).sort({ endDate: 1 });
       data = dbInterviews.map(i => ({ id: i._id, ...i.toObject() }));
     } else {
-      data = [...memInterviews.values()].sort((a,b) => new Date(a.date) - new Date(b.date));
+      data = [...memInterviews.values()].sort((a,b) => new Date(a.endDate || a.date) - new Date(b.endDate || b.date));
     }
     res.json(data);
   } catch (err) {

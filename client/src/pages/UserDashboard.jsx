@@ -173,18 +173,33 @@ export default function UserDashboard() {
                       </div>
                       <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '4px 8px', background: '#F3F4F6', color: '#000', borderRadius: '4px' }}>{iv.status}</span>
                     </div>
-                    <div style={{ background: '#F9FAFB', padding: '12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between' }}>
-                      <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>Starts: <b style={{ color: '#111827' }}>{formatCountdown(iv.date)}</b></div>
-                      <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>{iv.date.toLocaleDateString()}</div>
+                    <div style={{ background: '#F9FAFB', padding: '12px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                        <span style={{ color: '#6B7280' }}>Starting:</span>
+                        <b style={{ color: '#000' }}>{new Date(iv.startDate || iv.createdAt).toLocaleDateString()}</b>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                        <span style={{ color: '#6B7280' }}>Deadline:</span>
+                        <b style={{ color: '#000' }}>{new Date(iv.endDate || iv.date).toLocaleDateString()}</b>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: 4, textAlign: 'center', borderTop: '1px solid #E5E7EB', paddingTop: 4 }}>
+                        {new Date() < new Date(iv.startDate || iv.createdAt) ? `Available in ${formatCountdown(new Date(iv.startDate || iv.createdAt))}` : `Closes in ${formatCountdown(new Date(iv.endDate || iv.date))}`}
+                      </div>
                     </div>
                   </div>
                   <div style={{ padding: '16px 24px', borderTop: '1px solid #E5E7EB', background: '#F9FAFB', display: 'flex', gap: 12 }}>
                     <button onClick={() => setSelectedInterview(iv)} style={{ flex: 1, padding: '8px', background: '#fff', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>View Details</button>
                     <button 
                       onClick={() => { setForm(f => ({ ...f, role: iv.role })); setShowQuickStart(true); }}
-                      style={{ flex: 1, padding: '8px', background: '#111827', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
+                      disabled={new Date() < new Date(iv.startDate || iv.createdAt)}
+                      style={{ 
+                        flex: 1, padding: '8px', background: new Date() < new Date(iv.startDate || iv.createdAt) ? '#E5E7EB' : '#111827', 
+                        color: new Date() < new Date(iv.startDate || iv.createdAt) ? '#9CA3AF' : '#fff', 
+                        border: 'none', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, 
+                        cursor: new Date() < new Date(iv.startDate || iv.createdAt) ? 'not-allowed' : 'pointer' 
+                      }}
                     >
-                      Start Now
+                      {new Date() < new Date(iv.startDate || iv.createdAt) ? 'Not Started' : 'Start Now'}
                     </button>
                   </div>
                 </div>
@@ -288,6 +303,8 @@ export default function UserDashboard() {
               <div style={{ padding: '32px' }}>
                 <p><b>Company:</b> {selectedInterview.companyName}</p>
                 <p><b>Role:</b> {ROLES.find(r => r.value === selectedInterview.role)?.label || selectedInterview.role}</p>
+                <p><b>Starts:</b> {new Date(selectedInterview.startDate || selectedInterview.createdAt).toLocaleDateString()}</p>
+                <p><b>Ends:</b> {new Date(selectedInterview.endDate || selectedInterview.date).toLocaleDateString()}</p>
                 <p><b>Description:</b> {selectedInterview.description}</p>
                 <p><b>Instructions:</b> {selectedInterview.instructions}</p>
               </div>

@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const interviewSchema = new mongoose.Schema({
   companyName: { type: String, required: true },
   role: { type: String, required: true },
-  date: { type: Date, required: true },
+  startDate: { type: Date, default: Date.now },
+  endDate: { type: Date, required: true },
   mode: { type: String, default: 'AI Video' },
   status: { type: String, default: 'Scheduled' },
   description: { type: String, default: '' },
