@@ -153,7 +153,7 @@ export default function Admin() {
         <div style={{ width: 32 }} />
       </div>
 
-      {/* Sidebar - Fix PC Cross button and Mobile view */}
+      {/* Sidebar */}
       <div className={`sidebar-overlay ${isSidebarOpen ? 'show' : ''}`} onClick={() => setIsSidebarOpen(false)} />
       <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -229,14 +229,24 @@ export default function Admin() {
                 <div className="table-wrapper">
                   <table className="admin-table">
                     <thead>
-                      <tr>{['Candidate','Role','Score','Trust','Decision','Action'].map(h => <th key={h}>{h}</th>)}</tr>
+                      <tr>
+                        <th style={{ width: '25%' }}>Candidate</th>
+                        <th style={{ width: '20%' }}>Role</th>
+                        <th style={{ width: '10%' }}>Score</th>
+                        <th style={{ width: '10%' }}>Trust</th>
+                        <th style={{ width: '15%' }}>Decision</th>
+                        <th style={{ width: '20%' }}>Action</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {filtered.map(c => (
                         <tr key={c.sessionId} onClick={() => openCandidate(c)} className={selected?.sessionId === c.sessionId ? 'active' : ''}>
-                          <td><div className="name-bold">{c.name}</div><div className="sub-text">{c.email}</div></td>
+                          <td>
+                            <div style={{ fontWeight: 600, color: '#111827' }}>{c.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>{c.email}</div>
+                          </td>
                           <td>{ROLE_LABELS[c.role] || c.role}</td>
-                          <td className="score-cell">{c.overallScore || '—'}/10</td>
+                          <td style={{ fontWeight: 700, color: '#4338CA' }}>{c.overallScore || '—'}/10</td>
                           <td>{c.trustScore ?? '—'}%</td>
                           <td><span className={`badge ${DECISION_BADGE[c.fitmentDecision] || 'badge-gray'}`}>{c.fitmentDecision || 'Pending'}</span></td>
                           <td onClick={e => e.stopPropagation()}>
@@ -266,23 +276,18 @@ export default function Admin() {
             </div>
 
             <div className="interviews-grid">
-              {allInterviews.length === 0 ? (
-                <div className="empty-state card">No interviews created yet. Click "+ Create" to start.</div>
-              ) : allInterviews.map(iv => (
+              {allInterviews.map(iv => (
                 <div key={iv.id || iv._id} className="interview-card card">
                   <div className="iv-header">
                     <h3>{ROLE_LABELS[iv.role] || iv.role}</h3>
-                    <button onClick={() => handleDeleteInterview(iv.id || iv._id)} className="delete-btn-enhanced" title="Delete Interview">
+                    <button onClick={() => handleDeleteInterview(iv.id || iv._id)} className="delete-btn-enhanced">
                       <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                   </div>
                   <div className="iv-company">{iv.companyName}</div>
-                  <div className="iv-desc">{iv.description || 'No description provided for this role.'}</div>
+                  <div className="iv-desc">{iv.description || 'No description provided.'}</div>
                   <div className="iv-footer">
-                    <span className="iv-date">
-                       <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                       {new Date(iv.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
+                    <span className="iv-date">{new Date(iv.date).toLocaleDateString()}</span>
                     <span className="badge badge-emerald">Active</span>
                   </div>
                 </div>
@@ -298,63 +303,65 @@ export default function Admin() {
           <div className="detail-drawer-overlay" onClick={() => setSelected(null)} />
           <div className="detail-drawer">
             <div className="detail-header">
-              <div>
-                <h2>{selected.name}</h2>
-                <p className="sub-text">{selected.email} · {ROLE_LABELS[selected.role] || selected.role}</p>
+              <div style={{ flex: 1 }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 4px', color: '#111827' }}>{selected.name}</h2>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#6B7280' }}>{selected.email} · {ROLE_LABELS[selected.role] || selected.role}</p>
               </div>
-              <button onClick={() => setSelected(null)} className="close-btn">✕</button>
+              <button onClick={() => setSelected(null)} className="close-btn" style={{ fontSize: '1.5rem', padding: '4px 12px' }}>✕</button>
             </div>
             
             <div className="detail-body">
-              <div className="detail-grid">
-                <div className="detail-stat-box">
-                  <label>Overall Score</label>
-                  <div className="val-big">{selected.overallScore || '—'}/10</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div style={{ background: '#F9FAFB', padding: '20px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E5E7EB' }}>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: 4 }}>Overall Score</label>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#111827' }}>{selected.overallScore || '—'}/10</div>
                 </div>
-                <div className="detail-stat-box">
-                  <label>Trust Score</label>
-                  <div className="val-big">{selected.trustScore || '—'}%</div>
+                <div style={{ background: '#F9FAFB', padding: '20px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E5E7EB' }}>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: 4 }}>Trust Score</label>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#111827' }}>{selected.trustScore || '—'}%</div>
                 </div>
               </div>
 
-              <div className="detail-section summary-box">
-                <h3>AI Recommendation</h3>
-                <p>{selected.fitmentReason || 'No summary available.'}</p>
+              <div style={{ background: '#F0FDFA', padding: '24px', borderRadius: '12px', border: '1px solid #5EEAD4', color: '#0F766E' }}>
+                <h3 style={{ margin: '0 0 12px', fontSize: '1rem', fontWeight: 800 }}>AI Recommendation</h3>
+                <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.6 }}>{selected.fitmentReason || 'No summary available.'}</p>
               </div>
 
-              <div className="detail-section">
-                <h3>Skill Breakdown</h3>
+              <div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 16 }}>Skill Breakdown</h3>
                 {SKILL_KEYS.map(k => (
-                  <div key={k} className="skill-row">
-                    <div className="skill-info">
-                      <span>{k}</span>
-                      <b>{selected.skillScores?.[k] || 0}/10</b>
+                  <div key={k} style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: 6 }}>
+                      <span style={{ textTransform: 'capitalize', fontWeight: 500 }}>{k}</span>
+                      <b style={{ color: '#111827' }}>{selected.skillScores?.[k] || 0}/10</b>
                     </div>
-                    <div className="progress-bg"><div className="progress-bar" style={{ width: `${(selected.skillScores?.[k]||0)*10}%` }} /></div>
+                    <div style={{ height: 8, background: '#E5E7EB', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', background: '#4338CA', width: `${(selected.skillScores?.[k]||0)*10}%`, borderRadius: 4 }} />
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <div className="detail-section">
-                <h3>Interview Transcript</h3>
+              <div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 16 }}>Interview Transcript</h3>
                 {!selected.answers ? (
-                   <div style={{ color: '#6B7280', fontSize: '0.9rem' }}>Loading answers...</div>
+                   <div style={{ padding: '20px', textAlign: 'center', color: '#6B7280' }}>Loading answers...</div>
                 ) : (
-                  <div className="answers-list">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                     {selected.answers.map((a, i) => (
-                      <div key={i} className="answer-item">
-                        <div className="q-head">
-                          <span className="q-num">Q{i+1}</span>
-                          <p className="q-text">{a.questionText}</p>
+                      <div key={i} style={{ padding: '20px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '12px' }}>
+                        <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800, background: '#111827', color: '#fff', padding: '2px 8px', borderRadius: '4px', height: 'fit-content' }}>Q{i+1}</span>
+                          <p style={{ fontSize: '0.95rem', fontWeight: 700, color: '#111827', margin: 0 }}>{a.questionText}</p>
                         </div>
-                        <div className="a-content">
-                          <div className="a-label">CANDIDATE RESPONSE</div>
-                          <p className="a-text">{a.transcript || 'No response recorded.'}</p>
+                        <div style={{ padding: '12px', background: '#fff', border: '1px solid #E5E7EB', borderRadius: '8px', marginBottom: 12 }}>
+                          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#9CA3AF', letterSpacing: '0.05em', marginBottom: 6 }}>CANDIDATE RESPONSE</div>
+                          <p style={{ fontSize: '0.9rem', color: '#374151', margin: 0, lineHeight: 1.5 }}>{a.transcript || 'No response recorded.'}</p>
                         </div>
                         {a.geminiScores?.feedback && (
-                          <div className="a-feedback">
-                            <div className="a-label">AI FEEDBACK</div>
-                            <p className="f-text">{a.geminiScores.feedback}</p>
+                          <div style={{ padding: '12px', background: '#EEF2FF', borderRadius: '8px', border: '1px solid #C7D2FE' }}>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#4338CA', letterSpacing: '0.05em', marginBottom: 6 }}>AI FEEDBACK</div>
+                            <p style={{ fontSize: '0.85rem', color: '#4338CA', margin: 0, lineHeight: 1.5, fontStyle: italic }}>{a.geminiScores.feedback}</p>
                           </div>
                         )}
                       </div>
@@ -367,113 +374,75 @@ export default function Admin() {
         </>
       )}
 
-      {/* Create Modal */}
-      {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="modal-box card" onClick={e => e.stopPropagation()}>
-            <h2 style={{ marginBottom: 24 }}>New Interview</h2>
-            <form onSubmit={handleCreateInterview}>
-              <div className="form-group">
-                <label>Role Name (e.g. Teacher)</label>
-                <input className="input" placeholder="Enter role..." value={newIv.role} onChange={e => setNewIv({ ...newIv, role: e.target.value })} required />
-              </div>
-              <div className="form-group">
-                <label>Date</label>
-                <input className="input" type="date" value={newIv.date} onChange={e => setNewIv({ ...newIv, date: e.target.value })} required />
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea className="textarea" rows={3} placeholder="Job description..." value={newIv.description} onChange={e => setNewIv({ ...newIv, description: e.target.value })} />
-              </div>
-              <div className="modal-footer">
-                <button type="button" onClick={() => setShowCreateModal(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary">Create Interview</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {toast && <div className="toast">{toast}</div>}
-
+      {/* Styles */}
       <style>{`
         .admin-layout { display: flex; height: 100vh; width: 100vw; background: #F9FAFB; overflow: hidden; position: relative; }
-        
-        /* Sidebar Fixes */
-        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; transition: opacity 0.3s; }
-        .sidebar-overlay.show { display: block; }
-
-        .sidebar { width: 280px; height: 100%; background: #111827; color: #fff; display: flex; flex-direction: column; z-index: 1001; transition: transform 0.3s ease; }
+        .sidebar { width: 260px; height: 100%; background: #111827; color: #fff; display: flex; flex-direction: column; z-index: 1001; transition: transform 0.3s ease; }
         .sidebar-header { padding: 32px 24px; display: flex; align-items: center; justify-content: space-between; }
         .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.25rem; }
         .brand-logo { width: 32px; height: 32px; background: #fff; color: #111827; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        
         .close-sidebar-btn { display: none; background: transparent; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
-
         .nav-list { flex: 1; padding: 0 16px; display: flex; flex-direction: column; gap: 6px; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 10px; background: transparent; border: none; color: #9CA3AF; cursor: pointer; text-align: left; font-size: 0.95rem; font-weight: 500; transition: all 0.2s; }
         .nav-item:hover { background: #1F2937; color: #fff; }
-        .nav-item.active { background: #4338CA; color: #fff; box-shadow: 0 4px 12px rgba(67, 56, 202, 0.2); }
-        
+        .nav-item.active { background: #4338CA; color: #fff; }
         .sidebar-footer { padding: 24px; border-top: 1px solid #1F2937; }
-        .logout-btn { display: flex; align-items: center; gap: 10px; width: 100%; background: transparent; border: none; color: #EF4444; cursor: pointer; font-size: 0.95rem; font-weight: 600; padding: 10px; border-radius: 8px; }
-        .logout-btn:hover { background: rgba(239, 68, 68, 0.1); }
-
-        .main-content { flex: 1; height: 100%; overflow-y: auto; padding: 40px; position: relative; }
+        .logout-btn { display: flex; align-items: center; gap: 10px; width: 100%; background: transparent; border: none; color: #EF4444; cursor: pointer; font-size: 0.95rem; font-weight: 600; }
+        
+        .main-content { flex: 1; height: 100%; overflow-y: auto; padding: 40px; }
         .mobile-header { display: none; width: 100%; height: 60px; background: #fff; border-bottom: 1px solid #E5E7EB; align-items: center; justify-content: space-between; padding: 0 16px; position: sticky; top: 0; z-index: 900; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
         
         .page-header { margin-bottom: 32px; }
         .page-header h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; color: #111827; }
-        .page-header p { color: #6B7280; }
-
-        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 40px; }
-        .stat-card { background: #fff; padding: 24px; border-radius: 16px; border: 1px solid #E5E7EB; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .stat-val { font-size: 2rem; font-weight: 800; }
-        .stat-label { font-size: 0.85rem; color: #6B7280; margin-top: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-
-        /* Interviews UI Enhancement */
-        .create-btn-enhanced { display: flex; align-items: center; gap: 8px; background: #111827; color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .create-btn-enhanced:hover { background: #1F2937; transform: translateY(-1px); }
-
-        .interviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
-        .interview-card { padding: 28px; transition: transform 0.2s; border: 1px solid #E5E7EB; }
-        .interview-card:hover { transform: translateY(-4px); border-color: #4338CA; }
-        .iv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-        .iv-header h3 { margin: 0; font-size: 1.2rem; font-weight: 800; color: #111827; }
-        .iv-company { font-size: 0.9rem; color: #4338CA; font-weight: 600; margin-bottom: 16px; }
-        .iv-desc { font-size: 0.9rem; color: #6B7280; line-height: 1.6; margin-bottom: 24px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .iv-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F3F4F6; pt: 16px; }
-        .iv-date { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #9CA3AF; font-weight: 500; }
         
-        .delete-btn-enhanced { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: #FEF2F2; color: #EF4444; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-        .delete-btn-enhanced:hover { background: #EF4444; color: #fff; }
+        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: #fff; padding: 24px; border-radius: 12px; border: 1px solid #E5E7EB; text-align: center; }
+        .stat-val { font-size: 1.8rem; font-weight: 800; }
+        .stat-label { font-size: 0.85rem; color: #6B7280; margin-top: 4px; font-weight: 600; text-transform: uppercase; }
 
-        /* Detail Drawer Styles */
+        .card { background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .filter-bar { padding: 16px; margin-bottom: 24px; display: flex; gap: 12px; align-items: center; }
+        .filter-group { display: flex; gap: 12px; }
+        .input { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 0.9rem; }
+        .select { padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 0.9rem; background: #fff; }
+
+        .data-section { overflow: hidden; border: 1px solid #E5E7EB; }
+        .table-wrapper { width: 100%; overflow-x: auto; }
+        .admin-table { width: 100%; border-collapse: collapse; min-width: 800px; table-layout: fixed; }
+        .admin-table th { text-align: left; padding: 16px; background: #F9FAFB; border-bottom: 1px solid #E5E7EB; font-size: 0.75rem; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; }
+        .admin-table td { padding: 16px; border-bottom: 1px solid #E5E7EB; font-size: 0.9rem; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; }
+        .admin-table tr:hover { background: #F9FAFB; cursor: pointer; }
+
         .detail-drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 1050; }
         .detail-drawer { position: fixed; top: 0; right: 0; width: 550px; height: 100%; background: #fff; z-index: 1060; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.1); animation: drawerSlide 0.3s ease-out; }
         @keyframes drawerSlide { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        
-        .filter-bar { padding: 20px; margin-bottom: 24px; display: flex; gap: 16px; align-items: center; }
-        .filter-group { display: flex; gap: 12px; }
+        .detail-header { padding: 32px; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: flex-start; }
+        .detail-body { padding: 32px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 32px; }
+        .close-btn { background: transparent; border: none; cursor: pointer; color: #9CA3AF; }
 
-        /* General UI Components */
-        .card { background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .input, .select, .textarea { padding: 12px 16px; border: 1px solid #E5E7EB; border-radius: 10px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
-        .input:focus, .select:focus, .textarea:focus { border-color: #4338CA; }
-        
-        .btn-primary { background: #111827; color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; }
-        .btn-secondary { background: #fff; border: 1px solid #D1D5DB; color: #374151; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .create-btn-enhanced { display: flex; align-items: center; gap: 8px; background: #111827; color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .interviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+        .interview-card { padding: 24px; }
+        .iv-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+        .iv-company { font-size: 0.9rem; color: #4338CA; font-weight: 600; margin-bottom: 8px; }
+        .iv-desc { font-size: 0.85rem; color: #6B7280; margin-bottom: 16px; line-height: 1.5; }
+        .iv-footer { display: flex; justify-content: space-between; align-items: center; }
+
+        .badge { padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-emerald { background: #ECFDF5; color: #059669; }
+        .badge-amber { background: #FFFBEB; color: #D97706; }
+        .badge-rose { background: #FEF2F2; color: #E11D48; }
+        .badge-gray { background: #F3F4F6; color: #6B7280; }
 
         @media (max-width: 850px) {
-          .sidebar { position: fixed; transform: translateX(-100%); z-index: 1100; }
+          .sidebar { position: fixed; transform: translateX(-100%); }
           .sidebar.open { transform: translateX(0); }
           .sidebar-overlay.show { display: block; }
-          .close-sidebar-btn { display: block; }
           .mobile-header { display: flex; }
-          .main-content { padding: 20px; flex: none; width: 100%; height: calc(100vh - 60px); }
+          .close-sidebar-btn { display: block; }
+          .main-content { padding: 20px; }
           .detail-drawer { width: 100%; }
-          .filter-bar { flex-direction: column; align-items: stretch; }
-          .filter-group { flex-direction: column; }
         }
       `}</style>
     </div>
