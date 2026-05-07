@@ -98,10 +98,6 @@ export default function Result() {
     <div style={{ minHeight: '100vh', paddingTop: 60, background: 'var(--bg-secondary)', paddingBottom: 60 }}>
       <nav className="navbar">
         <span className="navbar-brand">HireVaani</span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-          <Link to="/" className="btn btn-outline btn-sm">New Interview</Link>
-          <Link to="/admin" className="btn btn-ghost btn-sm">Admin</Link>
-        </div>
       </nav>
 
       <div className="container" style={{ paddingTop: 32 }}>
@@ -221,7 +217,6 @@ export default function Result() {
         {/* Actions */}
         <div className="result-actions" style={{ display: 'flex', gap: 12 }}>
           <Link to="/dashboard" className="btn btn-primary btn-lg">Back to Dashboard</Link>
-          <Link to="/admin" className="btn btn-outline btn-lg">Organizer View</Link>
         </div>
       </div>
 

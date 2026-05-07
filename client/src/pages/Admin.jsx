@@ -381,25 +381,25 @@ export default function Admin() {
 
       {/* Create Modal */}
       {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="modal-box card" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
-            <h2 style={{ marginBottom: 24 }}>Create Interview</h2>
+        <div className="admin-modal-overlay" onClick={() => setShowCreateModal(false)}>
+          <div className="admin-modal-box card" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
+            <h2 style={{ marginBottom: 24, fontSize: '1.5rem', fontWeight: 800 }}>Create Interview</h2>
             <form onSubmit={handleCreateInterview}>
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 6 }}>Interview Role</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 8, color: '#6B7280', textTransform: 'uppercase' }}>Interview Role</label>
                 <input className="input" placeholder="e.g. Senior Teacher" value={newIv.role} onChange={e => setNewIv({ ...newIv, role: e.target.value })} required />
               </div>
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 6 }}>Deadline Date</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 8, color: '#6B7280', textTransform: 'uppercase' }}>Deadline Date</label>
                 <input className="input" type="date" value={newIv.date} onChange={e => setNewIv({ ...newIv, date: e.target.value })} required />
               </div>
               <div className="form-group" style={{ marginBottom: 24 }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 6 }}>Role Description</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 8, color: '#6B7280', textTransform: 'uppercase' }}>Role Description</label>
                 <textarea className="textarea" rows={3} placeholder="Key requirements..." value={newIv.description} onChange={e => setNewIv({ ...newIv, description: e.target.value })} />
               </div>
-              <div className="modal-footer" style={{ border: 'none', padding: 0, background: 'none' }}>
-                <button type="button" onClick={() => setShowCreateModal(false)} className="btn-secondary" style={{ marginRight: 12 }}>Cancel</button>
-                <button type="submit" className="btn-primary" style={{ background: '#000' }}>Create Interview</button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                <button type="button" onClick={() => setShowCreateModal(false)} className="btn-secondary" style={{ padding: '10px 20px', border: '1px solid #E5E7EB', borderRadius: '8px', background: '#fff', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ background: '#000', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Create Interview</button>
               </div>
             </form>
           </div>
@@ -409,6 +409,9 @@ export default function Admin() {
       {toast && <div className="toast">{toast}</div>}
 
       <style>{`
+        .admin-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 24px; }
+        .admin-modal-box { background: #fff; width: 100%; padding: 32px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); position: relative; }
+        
         .admin-layout { display: flex; height: 100vh; width: 100vw; background: #FFFFFF; overflow: hidden; position: relative; }
         .sidebar { width: 260px; height: 100%; background: #000000; color: #fff; display: flex; flex-direction: column; z-index: 1001; transition: transform 0.3s ease; }
         .sidebar-header { padding: 32px 24px; display: flex; align-items: center; justify-content: space-between; }
