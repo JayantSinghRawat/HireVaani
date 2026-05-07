@@ -5,6 +5,7 @@ import UserDashboard from './pages/UserDashboard';
 import Interview     from './pages/Interview';
 import Result        from './pages/Result';
 import Admin         from './pages/Admin';
+import Landing       from './pages/Landing';
 import './index.css';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -31,7 +32,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/"            element={<Navigate to="/login" replace />} />
+        <Route path="/"            element={<Landing />} />
         <Route path="/login"       element={<Login />} />
         <Route path="/signup"      element={<Signup />} />
         
