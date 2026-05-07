@@ -15,26 +15,26 @@
   --brand-secondary: #374151;
   --brand-light:   #F3F4F6;
 
-  /* Status Colors (aligned with UserDashboard) */
-  --blue:          #4338CA;
-  --blue-dark:     #3730A3;
-  --blue-light:    #EEF2FF;
-  --blue-mid:      #E0E7FF;
+  /* Status Colors (Strict Monochrome) */
+  --blue:          #111827;
+  --blue-dark:     #000000;
+  --blue-light:    #F3F4F6;
+  --blue-mid:      #E5E7EB;
   
-  --emerald:       #059669;
-  --emerald-dark:  #047857;
-  --emerald-light: #ECFDF5;
+  --emerald:       #111827;
+  --emerald-dark:  #000000;
+  --emerald-light: #F3F4F6;
   
-  --rose:          #DC2626;
-  --rose-dark:     #B91C1C;
-  --rose-light:    #FEF2F2;
+  --rose:          #374151;
+  --rose-dark:     #000000;
+  --rose-light:    #F9FAFB;
   
-  --amber:         #D97706;
-  --amber-dark:    #B45309;
-  --amber-light:   #FEF3C7;
+  --amber:         #6B7280;
+  --amber-dark:    #111827;
+  --amber-light:   #F3F4F6;
 
-  --purple:        #6D28D9;
-  --purple-light:  #F5F3FF;
+  --purple:        #111827;
+  --purple-light:  #F9FAFB;
 
   /* Text */
   --text-primary:   #111827;

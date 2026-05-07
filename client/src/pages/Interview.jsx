@@ -291,18 +291,18 @@ export default function Interview() {
     </div>
   );
 
-  const trustColor = trustScore >= 70 ? 'var(--emerald)' : trustScore >= 40 ? 'var(--amber)' : 'var(--rose)';
+  const trustColor = trustScore >= 70 ? '#000000' : trustScore >= 40 ? '#6B7280' : '#000000';
 
   return (
-    <div style={{ minHeight: '100vh', paddingTop: 60, background: 'var(--bg-secondary)' }}>
-      {warningMsg && <div className="warning-banner">{warningMsg}</div>}
+    <div style={{ minHeight: '100vh', paddingTop: 60, background: '#FFFFFF' }}>
+      {warningMsg && <div className="warning-banner" style={{ background: '#000' }}>{warningMsg}</div>}
 
-      <nav className="navbar">
+      <nav className="navbar" style={{ background: '#fff', borderBottom: '1px solid #eee' }}>
         <span className="navbar-brand">HireVaani</span>
         <div className="interview-nav-badges">
-          <span className="badge badge-blue">{ROLE_LABELS[role]}</span>
+          <span className="badge badge-gray">{ROLE_LABELS[role]}</span>
           <span className="badge badge-gray">{LANG_LABELS[language]}</span>
-          <span className="nav-user-name">{name}</span>
+          <span className="nav-user-name" style={{ color: '#000' }}>{name}</span>
         </div>
       </nav>
 
@@ -318,13 +318,13 @@ export default function Interview() {
         <div className="interview-layout">
           {/* CAMERA BLOCK */}
           <div className="layout-camera">
-            <div className="card" style={{ overflow: 'hidden', background: '#f3f4f6' }}>
+            <div className="card" style={{ overflow: 'hidden', background: '#F3F4F6', border: '1px solid #E5E7EB' }}>
               <video
                 ref={videoRef} autoPlay muted playsInline
                 style={{ width: '100%', display: 'block', minHeight: 180, maxHeight: 240, objectFit: 'contain', transform: 'scaleX(-1)' }}
               />
-              <div className="camera-status">
-                <span className={`dot dot-${faceStatus === 'Face verified' ? 'green' : 'amber'}`} />
+              <div className="camera-status" style={{ background: '#fff' }}>
+                <span className={`dot dot-${faceStatus === 'Face verified' ? 'blue' : 'amber'}`} style={{ background: faceStatus === 'Face verified' ? '#000' : '#999' }} />
                 <span>{faceStatus}</span>
               </div>
             </div>
@@ -332,10 +332,10 @@ export default function Interview() {
 
           {/* TRUST BLOCK */}
           <div className="layout-trust">
-            <div className="card" style={{ padding: '18px 16px' }}>
+            <div className="card" style={{ padding: '18px 16px', border: '1px solid #E5E7EB' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Trust Score</span>
-                <span style={{ fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: '1.2rem', color: trustColor }}>{trustScore}%</span>
+                <span style={{ fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: '1.2rem', color: '#000' }}>{trustScore}%</span>
               </div>
               <div className="progress-bar" style={{ height: 6 }}>
                 <div style={{ height: '100%', borderRadius: 'var(--radius-full)', background: trustColor, width: `${trustScore}%`, transition: 'width 0.4s' }} />

@@ -16,10 +16,10 @@ const ROLE_LABELS = {
 const LANG_LABELS = { en: 'English', hi: 'Hindi', kn: 'Kannada' };
 
 const DECISION_CONFIG = {
-  Shortlisted:    { badgeClass: 'badge-emerald', bg: 'var(--emerald-light)', border: '#a7f3d0', color: 'var(--emerald-dark)', label: 'Shortlisted' },
-  'Under Review': { badgeClass: 'badge-amber',   bg: 'var(--amber-light)',   border: '#fde68a', color: 'var(--amber)',       label: 'Under Review' },
-  'Not Fit':      { badgeClass: 'badge-rose',    bg: 'var(--rose-light)',    border: '#fecdd3', color: 'var(--rose)',        label: 'Not Fit' },
-  Pending:        { badgeClass: 'badge-blue',    bg: 'var(--blue-light)',    border: '#bfdbfe', color: 'var(--blue-dark)',   label: 'Pending' },
+  Shortlisted:    { badgeClass: 'badge-emerald', bg: '#F9FAFB', border: '#E5E7EB', color: '#000', label: 'Shortlisted' },
+  'Under Review': { badgeClass: 'badge-amber',   bg: '#F9FAFB', border: '#E5E7EB', color: '#000', label: 'Under Review' },
+  'Not Fit':      { badgeClass: 'badge-rose',    bg: '#F9FAFB', border: '#E5E7EB', color: '#000', label: 'Not Fit' },
+  Pending:        { badgeClass: 'badge-blue',    bg: '#F9FAFB', border: '#E5E7EB', color: '#000', label: 'Pending' },
 };
 
 const SKILL_LABELS = ['Relevance', 'Clarity', 'Confidence', 'Technical', 'Communication'];

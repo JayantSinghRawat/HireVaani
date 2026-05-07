@@ -195,11 +195,11 @@ export default function Admin() {
 
             <div className="stats-container">
               {[
-                { label: 'Total', value: stats.total, color: '#4338CA' },
-                { label: 'Shortlisted', value: stats.shortlisted, color: '#10B981' },
-                { label: 'Under Review', value: stats.review, color: '#F59E0B' },
-                { label: 'Not Fit', value: stats.notFit, color: '#EF4444' },
-                { label: 'Avg Score', value: `${stats.avgScore}/10`, color: '#8B5CF6' },
+                { label: 'Total', value: stats.total, color: '#111827' },
+                { label: 'Shortlisted', value: stats.shortlisted, color: '#111827' },
+                { label: 'Under Review', value: stats.review, color: '#111827' },
+                { label: 'Not Fit', value: stats.notFit, color: '#111827' },
+                { label: 'Avg Score', value: `${stats.avgScore}/10`, color: '#111827' },
               ].map(s => (
                 <div key={s.label} className="stat-card">
                   <div className="stat-val" style={{ color: s.color }}>{s.value}</div>
@@ -246,7 +246,7 @@ export default function Admin() {
                             <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>{c.email}</div>
                           </td>
                           <td>{ROLE_LABELS[c.role] || c.role}</td>
-                          <td style={{ fontWeight: 700, color: '#4338CA' }}>{c.overallScore || '—'}/10</td>
+                          <td style={{ fontWeight: 700, color: '#111827' }}>{c.overallScore || '—'}/10</td>
                           <td>{c.trustScore ?? '—'}%</td>
                           <td><span className={`badge ${DECISION_BADGE[c.fitmentDecision] || 'badge-gray'}`}>{c.fitmentDecision || 'Pending'}</span></td>
                           <td onClick={e => e.stopPropagation()}>
@@ -284,11 +284,11 @@ export default function Admin() {
                       <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                   </div>
-                  <div className="iv-company">{iv.companyName}</div>
+                  <div className="iv-company" style={{ color: '#6B7280' }}>{iv.companyName}</div>
                   <div className="iv-desc">{iv.description || 'No description provided.'}</div>
                   <div className="iv-footer">
                     <span className="iv-date">{new Date(iv.date).toLocaleDateString()}</span>
-                    <span className="badge badge-emerald">Active</span>
+                    <span className="badge badge-gray">Active</span>
                   </div>
                 </div>
               ))}
@@ -322,7 +322,7 @@ export default function Admin() {
                 </div>
               </div>
 
-              <div style={{ background: '#F0FDFA', padding: '24px', borderRadius: '12px', border: '1px solid #5EEAD4', color: '#0F766E' }}>
+              <div style={{ background: '#F9FAFB', padding: '24px', borderRadius: '12px', border: '1px solid #E5E7EB', color: '#111827' }}>
                 <h3 style={{ margin: '0 0 12px', fontSize: '1rem', fontWeight: 800 }}>AI Recommendation</h3>
                 <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.6 }}>{selected.fitmentReason || 'No summary available.'}</p>
               </div>
@@ -336,7 +336,7 @@ export default function Admin() {
                       <b style={{ color: '#111827' }}>{selected.skillScores?.[k] || 0}/10</b>
                     </div>
                     <div style={{ height: 8, background: '#E5E7EB', borderRadius: 4, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', background: '#4338CA', width: `${(selected.skillScores?.[k]||0)*10}%`, borderRadius: 4 }} />
+                      <div style={{ height: '100%', background: '#111827', width: `${(selected.skillScores?.[k]||0)*10}%`, borderRadius: 4 }} />
                     </div>
                   </div>
                 ))}
@@ -359,9 +359,9 @@ export default function Admin() {
                           <p style={{ fontSize: '0.9rem', color: '#374151', margin: 0, lineHeight: 1.5 }}>{a.transcript || 'No response recorded.'}</p>
                         </div>
                         {a.geminiScores?.feedback && (
-                          <div style={{ padding: '12px', background: '#EEF2FF', borderRadius: '8px', border: '1px solid #C7D2FE' }}>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#4338CA', letterSpacing: '0.05em', marginBottom: 6 }}>AI FEEDBACK</div>
-                            <p style={{ fontSize: '0.85rem', color: '#4338CA', margin: 0, lineHeight: 1.5, fontStyle: italic }}>{a.geminiScores.feedback}</p>
+                          <div style={{ padding: '12px', background: '#F3F4F6', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#111827', letterSpacing: '0.05em', marginBottom: 6 }}>AI FEEDBACK</div>
+                            <p style={{ fontSize: '0.85rem', color: '#374151', margin: 0, lineHeight: 1.5 }}>{a.geminiScores.feedback}</p>
                           </div>
                         )}
                       </div>
@@ -376,16 +376,16 @@ export default function Admin() {
 
       {/* Styles */}
       <style>{`
-        .admin-layout { display: flex; height: 100vh; width: 100vw; background: #F9FAFB; overflow: hidden; position: relative; }
-        .sidebar { width: 260px; height: 100%; background: #111827; color: #fff; display: flex; flex-direction: column; z-index: 1001; transition: transform 0.3s ease; }
+        .admin-layout { display: flex; height: 100vh; width: 100vw; background: #FFFFFF; overflow: hidden; position: relative; }
+        .sidebar { width: 260px; height: 100%; background: #000000; color: #fff; display: flex; flex-direction: column; z-index: 1001; transition: transform 0.3s ease; }
         .sidebar-header { padding: 32px 24px; display: flex; align-items: center; justify-content: space-between; }
         .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.25rem; }
-        .brand-logo { width: 32px; height: 32px; background: #fff; color: #111827; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .brand-logo { width: 32px; height: 32px; background: #fff; color: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
         .close-sidebar-btn { display: none; background: transparent; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
         .nav-list { flex: 1; padding: 0 16px; display: flex; flex-direction: column; gap: 6px; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 10px; background: transparent; border: none; color: #9CA3AF; cursor: pointer; text-align: left; font-size: 0.95rem; font-weight: 500; transition: all 0.2s; }
         .nav-item:hover { background: #1F2937; color: #fff; }
-        .nav-item.active { background: #4338CA; color: #fff; }
+        .nav-item.active { background: #FFFFFF; color: #000000; }
         .sidebar-footer { padding: 24px; border-top: 1px solid #1F2937; }
         .logout-btn { display: flex; align-items: center; gap: 10px; width: 100%; background: transparent; border: none; color: #EF4444; cursor: pointer; font-size: 0.95rem; font-weight: 600; }
         
@@ -394,14 +394,14 @@ export default function Admin() {
         .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
         
         .page-header { margin-bottom: 32px; }
-        .page-header h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; color: #111827; }
+        .page-header h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; color: #000; }
         
         .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
         .stat-card { background: #fff; padding: 24px; border-radius: 12px; border: 1px solid #E5E7EB; text-align: center; }
         .stat-val { font-size: 1.8rem; font-weight: 800; }
         .stat-label { font-size: 0.85rem; color: #6B7280; margin-top: 4px; font-weight: 600; text-transform: uppercase; }
 
-        .card { background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card { background: #fff; border-radius: 16px; border: 1px solid #E5E7EB; }
         .filter-bar { padding: 16px; margin-bottom: 24px; display: flex; gap: 12px; align-items: center; }
         .filter-group { display: flex; gap: 12px; }
         .input { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 0.9rem; }
@@ -411,28 +411,28 @@ export default function Admin() {
         .table-wrapper { width: 100%; overflow-x: auto; }
         .admin-table { width: 100%; border-collapse: collapse; min-width: 800px; table-layout: fixed; }
         .admin-table th { text-align: left; padding: 16px; background: #F9FAFB; border-bottom: 1px solid #E5E7EB; font-size: 0.75rem; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; }
-        .admin-table td { padding: 16px; border-bottom: 1px solid #E5E7EB; font-size: 0.9rem; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; }
+        .admin-table td { padding: 16px; border-bottom: 1px solid #E5E7EB; font-size: 0.9rem; vertical-align: middle; }
         .admin-table tr:hover { background: #F9FAFB; cursor: pointer; }
 
         .detail-drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 1050; }
-        .detail-drawer { position: fixed; top: 0; right: 0; width: 550px; height: 100%; background: #fff; z-index: 1060; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.1); animation: drawerSlide 0.3s ease-out; }
-        @keyframes drawerSlide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .detail-drawer { position: fixed; top: 0; right: 0; width: 550px; height: 100%; background: #fff; z-index: 1060; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
         .detail-header { padding: 32px; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: flex-start; }
         .detail-body { padding: 32px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 32px; }
         .close-btn { background: transparent; border: none; cursor: pointer; color: #9CA3AF; }
 
-        .create-btn-enhanced { display: flex; align-items: center; gap: 8px; background: #111827; color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; }
-        .interviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
-        .interview-card { padding: 24px; }
+        .create-btn-enhanced { display: flex; align-items: center; gap: 8px; background: #000; color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .interview-card { padding: 24px; border: 1px solid #E5E7EB; }
         .iv-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
-        .iv-company { font-size: 0.9rem; color: #4338CA; font-weight: 600; margin-bottom: 8px; }
+        .iv-header h3 { color: #000; }
         .iv-desc { font-size: 0.85rem; color: #6B7280; margin-bottom: 16px; line-height: 1.5; }
-        .iv-footer { display: flex; justify-content: space-between; align-items: center; }
+        
+        .delete-btn-enhanced { background: #F3F4F6; color: #000; border: none; padding: 8px; border-radius: 8px; cursor: pointer; }
+        .delete-btn-enhanced:hover { background: #000; color: #fff; }
 
-        .badge { padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
-        .badge-emerald { background: #ECFDF5; color: #059669; }
-        .badge-amber { background: #FFFBEB; color: #D97706; }
-        .badge-rose { background: #FEF2F2; color: #E11D48; }
+        .badge { padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; border: 1px solid #E5E7EB; }
+        .badge-emerald { background: #000; color: #fff; }
+        .badge-amber { background: #F3F4F6; color: #000; }
+        .badge-rose { background: #FFFFFF; color: #000; }
         .badge-gray { background: #F3F4F6; color: #6B7280; }
 
         @media (max-width: 850px) {

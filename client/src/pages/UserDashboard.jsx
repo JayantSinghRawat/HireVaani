@@ -171,7 +171,7 @@ export default function UserDashboard() {
                         <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>{iv.companyName}</h3>
                         <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>{ROLES.find(r => r.value === iv.role)?.label}</div>
                       </div>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '4px 8px', background: '#ECFDF5', color: '#059669', borderRadius: '4px' }}>{iv.status}</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '4px 8px', background: '#F3F4F6', color: '#000', borderRadius: '4px' }}>{iv.status}</span>
                     </div>
                     <div style={{ background: '#F9FAFB', padding: '12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between' }}>
                       <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>Starts: <b style={{ color: '#111827' }}>{formatCountdown(iv.date)}</b></div>
