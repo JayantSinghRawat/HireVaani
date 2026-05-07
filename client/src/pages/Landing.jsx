@@ -14,7 +14,7 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section style={{ paddingTop: 200, paddingBottom: 140, textAlign: 'center' }}>
+      <section style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <div className="container">
           <div className="fade-in" style={{ maxWidth: 800, margin: '0 auto' }}>
             <h1 style={{ fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', fontWeight: 850, lineHeight: 1.1, letterSpacing: '-0.04em', marginBottom: 24, color: '#111827' }}>
@@ -30,16 +30,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer style={{ position: 'absolute', bottom: 0, width: '100%', padding: '40px 0', borderTop: '1px solid #f3f4f6', textAlign: 'center' }}>
-        <div className="container">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-            <div style={{ width: 24, height: 24, borderRadius: 6, background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: '0.8rem' }}>H</div>
-            <span style={{ fontWeight: 800, fontSize: '1rem' }}>HireVaani</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
