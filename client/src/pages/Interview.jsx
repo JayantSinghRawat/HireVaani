@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const TOTAL_QUESTIONS = 5;
 const ANSWER_TIME = 120; // seconds per answer
 const LOOK_AWAY_THRESHOLD = 2000; // ms before penalizing gaze away
