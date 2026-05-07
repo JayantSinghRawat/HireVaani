@@ -284,14 +284,14 @@ export default function Admin() {
                       <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#6B7280' }}>No candidates found for this interview.</td></tr>
                     ) : filteredCandidates.map(c => (
                       <tr key={c.sessionId} onClick={() => openCandidate(c)} className={selectedCandidate?.sessionId === c.sessionId ? 'active' : ''}>
-                        <td>
+                        <td data-label="Candidate">
                           <div style={{ fontWeight: 600, color: '#000' }}>{c.name}</div>
                           <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>{c.email}</div>
                         </td>
-                        <td style={{ fontWeight: 800 }}>{c.overallScore || '—'}/10</td>
-                        <td>{c.trustScore ?? '—'}%</td>
-                        <td><span className={`badge ${DECISION_BADGE[c.fitmentDecision] || 'badge-gray'}`}>{c.fitmentDecision || 'Pending'}</span></td>
-                        <td onClick={e => e.stopPropagation()}>
+                        <td data-label="Score" style={{ fontWeight: 800 }}>{c.overallScore || '—'}/10</td>
+                        <td data-label="Trust">{c.trustScore ?? '—'}%</td>
+                        <td data-label="Decision"><span className={`badge ${DECISION_BADGE[c.fitmentDecision] || 'badge-gray'}`}>{c.fitmentDecision || 'Pending'}</span></td>
+                        <td data-label="Action" onClick={e => e.stopPropagation()}>
                           <select className="select-sm" value={c.fitmentDecision || 'Pending'} onChange={e => updateCandidate(c.sessionId, { fitmentDecision: e.target.value })}>
                             {['Shortlisted','Under Review','Not Fit','Pending'].map(d => <option key={d}>{d}</option>)}
                           </select>
@@ -487,13 +487,44 @@ export default function Admin() {
         .badge-gray { background: #F3F4F6; color: #6B7280; }
 
         @media (max-width: 850px) {
-          .sidebar { position: fixed; transform: translateX(-100%); }
+          .sidebar { position: fixed; transform: translateX(-100%); width: 280px; }
           .sidebar.open { transform: translateX(0); }
           .sidebar-overlay.show { display: block; }
           .mobile-header { display: flex; }
           .close-sidebar-btn { display: block; }
-          .main-content { padding: 20px; }
-          .detail-drawer { width: 100%; }
+          .main-content { padding: 16px; padding-top: 24px; }
+          
+          .page-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+          .create-btn-enhanced { width: 100%; justify-content: center; }
+          
+          .interviews-grid { grid-template-columns: 1fr; gap: 16px; }
+          .stats-container { grid-template-columns: 1fr 1fr; }
+          
+          .detail-drawer { width: 100%; border-radius: 0; }
+          .detail-header { padding: 20px; }
+          .detail-body { padding: 20px; gap: 24px; }
+          
+          .filter-bar { flex-direction: column; }
+          .input, .select { width: 100%; }
+          
+          /* Hide table, show card list on mobile */
+          .admin-table thead { display: none; }
+          .admin-table tr { 
+            display: flex; flex-direction: column; padding: 16px; 
+            background: #fff; margin-bottom: 12px; border: 1px solid #E5E7EB; 
+            border-radius: 12px; position: relative; 
+          }
+          .admin-table td { 
+            padding: 4px 0; border: none; display: flex; 
+            justify-content: space-between; align-items: center; width: 100% !important;
+          }
+          .admin-table td:first-child { margin-bottom: 8px; border-bottom: 1px solid #F3F4F6; padding-bottom: 12px; display: block; }
+          .admin-table td:before { 
+            content: attr(data-label); font-weight: 700; color: #6B7280; 
+            font-size: 0.75rem; text-transform: uppercase; 
+          }
+          .admin-table td:first-child:before { display: none; }
+          .admin-table tr:hover { background: #fff; }
         }
       `}</style>
     </div>
