@@ -137,20 +137,7 @@ export default function UserDashboard() {
           <span className="ud-nav-badge" style={{ fontSize: '0.85rem', fontWeight: 500, color: '#6B7280', background: '#F3F4F6', padding: '4px 10px', borderRadius: '6px' }}>Candidate</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button 
-            className="ud-start-btn"
-            onClick={() => setShowQuickStart(true)}
-            style={{ 
-              background: '#111827', color: '#fff', border: 'none', 
-              padding: '6px 14px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 500,
-              cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-            }}
-          >
-            Start Interview
-          </button>
-          
-          <div style={{ position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>          <div style={{ position: 'relative' }}>
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
               style={{ position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer', color: '#6B7280', display: 'flex' }}

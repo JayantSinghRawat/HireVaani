@@ -8,7 +8,7 @@ const ANSWER_TIME = 120; // seconds per answer
 const LOOK_AWAY_THRESHOLD = 2000; // ms before penalizing gaze away
 
 const LANG_LABELS = { en: 'English', hi: 'Hindi', kn: 'Kannada' };
-const ROLE_LABELS = {
+const ROLE_LABELS  = {
   software_engineer: 'Software Engineer', data_analyst: 'Data Analyst',
   marketing_executive: 'Marketing Executive', hr_executive: 'HR Executive',
   sales_executive: 'Sales Executive', customer_support: 'Customer Support',
@@ -17,7 +17,9 @@ const ROLE_LABELS = {
 export default function Interview() {
   const navigate  = useNavigate();
   const { state } = useLocation();
+
   useEffect(() => { if (!state?.sessionId) navigate('/'); }, [state, navigate]);
+
   const { sessionId, name, role, language, email } = state || {};
 
   const [questions, setQuestions]   = useState([]);
@@ -41,12 +43,10 @@ export default function Interview() {
   const timerRef    = useRef(null);
   const alertsRef   = useRef(0);
   const trustRef    = useRef(100);
-  const lookAwayRef = useRef(null); // timestamp when face disappeared
+  const lookAwayRef = useRef(null);
   const phaseRef    = useRef('loading');
 
-  // Keep phaseRef in sync
   useEffect(() => { phaseRef.current = phase; }, [phase]);
-  // Keep trustRef in sync
   useEffect(() => { trustRef.current = trustScore; }, [trustScore]);
 
   const showWarning = (msg) => {
@@ -56,8 +56,12 @@ export default function Interview() {
 
   const terminateInterview = useCallback((reason) => {
     clearInterval(timerRef.current);
-    recorderRef.current?.stop?.();
-    streamRef.current?.getTracks().forEach(t => t.stop());
+    if (recorderRef.current && recorderRef.current.state === 'recording') {
+      recorderRef.current.stop();
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+    }
     setTerminated(true);
     setPhase('terminated');
     setError(reason);
@@ -68,24 +72,21 @@ export default function Interview() {
     if (!role || !language) return;
     axios.get(`${API}/questions?role=${role}&language=${language}&sessionId=${sessionId}`)
       .then(r => { setQuestions(r.data.questions); setPhase('ready'); })
-      .catch(() => setError('Failed to load questions. Check server connection.'));
+      .catch(() => setError('Failed to load questions. Check server.'));
   }, [role, language, sessionId]);
 
-  // Camera + face detection
+  // Camera + MediaPipe setup
   useEffect(() => {
     let animId = null;
     let detector = null;
 
     const setup = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
-          audio: true
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
+        if (videoRef.current) { 
+          videoRef.current.srcObject = stream; 
+          await videoRef.current.play(); 
         }
 
         try {
@@ -94,70 +95,67 @@ export default function Interview() {
             'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm'
           );
           detector = await FaceDetector.createFromOptions(vision, {
-            baseOptions: {
-              modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite',
-              delegate: 'GPU'
-            },
-            runningMode: 'VIDEO',
-            minDetectionConfidence: 0.4,
+            baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite', delegate: 'GPU' },
+            runningMode: 'VIDEO', minDetectionConfidence: 0.4,
           });
 
           let lastMs = -1;
           let lastPenaltyMs = -1;
-
+          
           const loop = () => {
             if (videoRef.current?.readyState === 4) {
               const now = performance.now();
-              if (now - lastMs >= 150) {
+              if (now - lastMs >= 150) { 
                 lastMs = now;
                 const r = detector.detectForVideo(videoRef.current, now);
                 const count = r.detections.length;
-
+                
                 if (count === 0) {
-                  // Face not in frame
                   if (!lookAwayRef.current) lookAwayRef.current = now;
                   const awayDuration = now - lookAwayRef.current;
-
-                  if (awayDuration > 500) setFaceStatus('⚠ Face not detected');
-
+                  
+                  if (awayDuration > 500) {
+                    setFaceStatus('Face not detected');
+                  }
+                  
                   if (awayDuration > LOOK_AWAY_THRESHOLD && now - lastPenaltyMs > 1500) {
                     lastPenaltyMs = now;
-                    alertsRef.current++;
+                    alertsRef.current++; 
                     setFaceAlerts(alertsRef.current);
                     const penalty = alertsRef.current <= 3 ? 5 : 10;
                     trustRef.current = Math.max(0, trustRef.current - penalty);
                     setTrustScore(trustRef.current);
-                    showWarning('⚠ Look at the camera! Trust score reduced.');
+                    showWarning('Look at the camera! Trust score reduced.');
 
-                    // Terminate if trust hits 0
                     if (trustRef.current <= 0 && phaseRef.current !== 'terminated') {
                       terminateInterview('Interview terminated: Trust score reached 0 due to repeated face detection failures. You must stay in frame during the interview.');
                     }
                   }
                 } else if (count > 1) {
                   lookAwayRef.current = null;
-                  setFaceStatus('⚠ Multiple faces detected');
-                  if (now - lastPenaltyMs > 1500) {
+                  setFaceStatus('Multiple faces detected');
+                  if (now - lastPenaltyMs > 1500) { 
                     lastPenaltyMs = now;
-                    alertsRef.current++;
+                    alertsRef.current++; 
                     setFaceAlerts(alertsRef.current);
                     trustRef.current = Math.max(0, trustRef.current - 8);
                     setTrustScore(trustRef.current);
-                    showWarning('⚠ Only you should be in the frame!');
+                    showWarning('Only you should be in the frame!');
+                    
                     if (trustRef.current <= 0 && phaseRef.current !== 'terminated') {
                       terminateInterview('Interview terminated: Multiple faces detected repeatedly. Integrity violation.');
                     }
                   }
                 } else {
                   lookAwayRef.current = null;
-                  setFaceStatus('✓ Face verified');
+                  setFaceStatus('Face verified');
                 }
               }
             }
             animId = requestAnimationFrame(loop);
           };
           loop();
-          setFaceStatus('✓ Face verified');
+          setFaceStatus('Face verified');
         } catch {
           setFaceStatus('Camera active');
         }
@@ -194,7 +192,9 @@ export default function Interview() {
 
   const stopRecording = useCallback(() => {
     clearInterval(timerRef.current);
-    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
+    if (recorderRef.current && recorderRef.current.state === 'recording') {
+      recorderRef.current.stop();
+    }
     setPhase('processing');
     setTimeout(() => processAudio(), 600);
   }, [processAudio]);
@@ -202,12 +202,22 @@ export default function Interview() {
   const startRecording = useCallback(() => {
     if (!streamRef.current) return;
     chunksRef.current = [];
+    
+    // Extract only audio tracks so MediaRecorder doesn't crash from mixed video/audio streams
     const audioTracks = streamRef.current.getAudioTracks();
-    if (audioTracks.length === 0) { setError('No microphone detected.'); return; }
+    if (audioTracks.length === 0) {
+      setError('Recording failed: No microphone detected.');
+      return;
+    }
     const audioStream = new MediaStream(audioTracks);
+    
     let options = {};
-    if (MediaRecorder.isTypeSupported('audio/webm')) options = { mimeType: 'audio/webm' };
-    else if (MediaRecorder.isTypeSupported('audio/mp4')) options = { mimeType: 'audio/mp4' };
+    if (MediaRecorder.isTypeSupported('audio/webm')) {
+      options = { mimeType: 'audio/webm' };
+    } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+      options = { mimeType: 'audio/mp4' };
+    }
+    
     try {
       const recorder = new MediaRecorder(audioStream, options);
       recorderRef.current = recorder;
@@ -216,7 +226,9 @@ export default function Interview() {
       setPhase('recording'); setTimeLeft(ANSWER_TIME);
       let t = ANSWER_TIME;
       timerRef.current = setInterval(() => { t--; setTimeLeft(t); if (t <= 0) stopRecording(); }, 1000);
-    } catch (e) { setError('Recording failed: ' + e.message); }
+    } catch (e) {
+      setError('Recording failed: ' + e.message);
+    }
   }, [stopRecording]);
 
   const startCountdown = useCallback(() => {
@@ -224,7 +236,10 @@ export default function Interview() {
     let c = 3;
     const id = setInterval(() => {
       c--; setCountdown(c);
-      if (c <= 0) { clearInterval(id); startRecording(); }
+      if (c <= 0) { 
+        clearInterval(id); 
+        startRecording(); 
+      }
     }, 1000);
   }, [startRecording]);
 
@@ -253,209 +268,188 @@ export default function Interview() {
   }, [sessionId, name, role, language, email, navigate]);
 
   const progress = (qIndex / TOTAL_QUESTIONS) * 100;
-  const trustColor = trustScore >= 70 ? '#10B981' : trustScore >= 40 ? '#F59E0B' : '#EF4444';
 
   // ── Terminated screen ──
   if (terminated) return (
-    <div style={styles.fullCenter}>
-      <div style={{ maxWidth: 420, textAlign: 'center', padding: '32px 24px' }}>
-        <div style={{ fontSize: '3rem', marginBottom: 16 }}>🚫</div>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: 24 }}>
+      <div style={{ maxWidth: 420, textAlign: 'center' }}>
         <h2 style={{ color: '#EF4444', marginBottom: 12 }}>Interview Terminated</h2>
         <p style={{ color: '#6B7280', lineHeight: 1.6, marginBottom: 24 }}>{error}</p>
-        <button className="btn btn-outline" onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
+        <button className="btn btn-outline" onClick={() => navigate('/')}>Back to Home</button>
       </div>
     </div>
   );
 
+  // ── Loading / Error states ──
   if (phase === 'loading') return (
-    <div style={styles.fullCenter}>
-      <div className="spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
-      <p style={{ marginTop: 16, color: '#6B7280' }}>AI is generating your interview questions...</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, paddingTop: 60 }}>
+      <div className="spinner" />
+      <p>Loading questions...</p>
+    </div>
+  );
+  if (error && phase !== 'review' && phase !== 'terminated') return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: 24, paddingTop: 60 }}>
+      <div className="alert alert-error" style={{ maxWidth: 480 }}>{error}</div>
+      <button className="btn btn-outline" onClick={() => navigate('/')}>Back to Home</button>
     </div>
   );
 
-  if (error && phase !== 'review') return (
-    <div style={styles.fullCenter}>
-      <div className="alert alert-error" style={{ maxWidth: 480, margin: '0 24px' }}>{error}</div>
-      <button className="btn btn-outline" style={{ marginTop: 16 }} onClick={() => navigate('/')}>Back to Home</button>
-    </div>
-  );
+  const trustColor = trustScore >= 70 ? 'var(--emerald)' : trustScore >= 40 ? 'var(--amber)' : 'var(--rose)';
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0F172A', color: '#F1F5F9', fontFamily: 'Inter, system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
-
-      {/* Warning banner */}
+    <div style={{ minHeight: '100vh', paddingTop: 60, background: 'var(--bg-secondary)' }}>
       {warningMsg && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, background: '#EF4444', color: '#fff', textAlign: 'center', padding: '12px 16px', fontWeight: 600, fontSize: '0.9rem', animation: 'slideDown 0.3s ease' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, background: '#EF4444', color: '#fff', textAlign: 'center', padding: '12px 16px', fontWeight: 600, fontSize: '0.9rem' }}>
           {warningMsg}
         </div>
       )}
 
-      {/* Top bar */}
-      <header style={{ background: '#1E293B', borderBottom: '1px solid #334155', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-        <span style={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.02em', color: '#F1F5F9' }}>HireVaani</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: '0.75rem', padding: '3px 8px', borderRadius: '4px', background: '#334155', color: '#94A3B8' }}>
-            {ROLE_LABELS[role]}
-          </span>
-          <span style={{ fontSize: '0.75rem', padding: '3px 8px', borderRadius: '4px', background: '#334155', color: '#94A3B8' }}>
-            {LANG_LABELS[language]}
-          </span>
+      <nav className="navbar">
+        <span className="navbar-brand">HireVaani</span>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span className="badge badge-blue">{ROLE_LABELS[role]}</span>
+          <span className="badge badge-gray">{LANG_LABELS[language]}</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 4 }}>{name}</span>
         </div>
-      </header>
+      </nav>
 
-      {/* Progress */}
-      <div style={{ background: '#1E293B', padding: '10px 20px 0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#64748B', marginBottom: 6 }}>
-          <span>Q{Math.min(qIndex + 1, TOTAL_QUESTIONS)} / {TOTAL_QUESTIONS}</span>
-          <span>{Math.round(progress)}%</span>
+      <div className="container" style={{ paddingTop: 24, paddingBottom: 40 }}>
+        {/* Progress bar */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            <span>Question {Math.min(qIndex + 1, TOTAL_QUESTIONS)} of {TOTAL_QUESTIONS}</span>
+            <span>{Math.round(progress)}% complete</span>
+          </div>
+          <div className="progress-bar"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
         </div>
-        <div style={{ height: 3, background: '#334155', borderRadius: 2 }}>
-          <div style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, #6366F1, #8B5CF6)', borderRadius: 2, transition: 'width 0.5s ease' }} />
-        </div>
-      </div>
 
-      {/* Main content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20 }}>
+          {/* Main panel */}
+          <div>
+            {phase !== 'submitting' && (
+              <div className="card" style={{ padding: '28px 28px', marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <span className="badge badge-purple" style={{ marginBottom: 12, display: 'inline-block' }}>
+                      Question {qIndex + 1}
+                    </span>
+                    <h3 style={{ lineHeight: 1.6, fontWeight: 600 }}>{questions[qIndex]}</h3>
+                  </div>
+                  {phase === 'recording' && (
+                    <div style={{ textAlign: 'center', flexShrink: 0, padding: '8px 16px', borderRadius: 'var(--radius-md)', background: timeLeft <= 10 ? 'var(--rose-light)' : 'var(--blue-light)', border: `1px solid ${timeLeft <= 10 ? '#fecdd3' : 'var(--blue-mid)'}` }}>
+                      <div style={{ fontFamily: 'var(--font-head)', fontSize: '1.5rem', fontWeight: 800, color: timeLeft <= 10 ? 'var(--rose)' : 'var(--blue)' }}>{timeLeft}s</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>remaining</div>
+                    </div>
+                  )}
+                </div>
 
-        {/* Camera strip at top (mobile-optimized) */}
-        <div style={{ background: '#1E293B', padding: '12px 20px 12px', display: 'flex', gap: 12, alignItems: 'center', borderBottom: '1px solid #334155' }}>
-          <div style={{ position: 'relative', width: 80, height: 60, borderRadius: 8, overflow: 'hidden', border: `2px solid ${faceStatus.includes('✓') ? '#10B981' : '#EF4444'}`, flexShrink: 0 }}>
-            <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
-            {faceStatus.includes('✓') && (
-              <div style={{ position: 'absolute', bottom: 3, right: 3, width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} />
+                {phase === 'recording' && (
+                  <div className="alert alert-error" style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="dot dot-red" style={{ animation: 'pulse 1s infinite' }} />
+                    Recording — speak clearly in {LANG_LABELS[language]}
+                  </div>
+                )}
+
+                {phase === 'countdown' && (
+                  <div style={{ marginTop: 24, textAlign: 'center', padding: '16px 0' }}>
+                    <div style={{ fontFamily: 'var(--font-head)', fontSize: '3.5rem', fontWeight: 800, color: 'var(--blue)' }}>{countdown}</div>
+                    <p style={{ marginTop: 8 }}>Get ready to speak...</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Transcript review */}
+            {phase === 'review' && (
+              <div className="card fade-in" style={{ padding: '24px 28px', marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <h4>Your Answer</h4>
+                  <span className="badge badge-emerald">Transcribed by Sarvam AI</span>
+                </div>
+                <textarea
+                  className="textarea"
+                  value={transcript}
+                  onChange={e => setTranscript(e.target.value)}
+                  rows={5}
+                  placeholder="Transcript will appear here. You may edit it if needed."
+                  style={{ marginBottom: 16 }}
+                />
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button id="save-answer-btn" className="btn btn-primary" onClick={saveAnswer}>
+                    {qIndex + 1 >= TOTAL_QUESTIONS ? 'Submit Interview' : 'Next Question'}
+                  </button>
+                  <button className="btn btn-outline btn-sm" onClick={() => { setTranscript(''); startCountdown(); }}>
+                    Re-record Answer
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            {phase === 'ready' && (
+              <button id="start-recording-btn" className="btn btn-primary btn-lg" style={{ width: '100%' }} onClick={startCountdown}>
+                Start Recording
+              </button>
+            )}
+            {phase === 'recording' && (
+              <button id="stop-recording-btn" className="btn btn-danger btn-lg" style={{ width: '100%' }} onClick={stopRecording}>
+                Stop Recording
+              </button>
+            )}
+            {phase === 'processing' && (
+              <div style={{ textAlign: 'center', padding: '24px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                <div className="spinner" /> <p>Transcribing with Sarvam AI...</p>
+              </div>
+            )}
+            {phase === 'submitting' && (
+              <div className="card" style={{ padding: '60px 40px', textAlign: 'center' }}>
+                <div className="spinner" style={{ width: 40, height: 40, borderWidth: 3, margin: '0 auto 20px' }} />
+                <h3 style={{ marginBottom: 10 }}>Evaluating your interview</h3>
+                <p>Gemini AI is analysing your answers. This takes 20–30 seconds.</p>
+                <p style={{ marginTop: 8, fontSize: '0.82rem', color: 'var(--text-muted)' }}>Please do not close this tab.</p>
+              </div>
             )}
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.72rem', color: faceStatus.includes('✓') ? '#10B981' : '#EF4444', marginBottom: 4, fontWeight: 600 }}>
-              {faceStatus}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: '0.7rem', color: '#64748B' }}>Trust</span>
-              <div style={{ flex: 1, height: 4, background: '#334155', borderRadius: 2 }}>
-                <div style={{ height: '100%', width: `${trustScore}%`, background: trustColor, borderRadius: 2, transition: 'width 0.4s, background 0.3s' }} />
+
+          {/* Right sidebar */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Camera */}
+            <div className="card" style={{ overflow: 'hidden' }}>
+              <video
+                ref={videoRef} autoPlay muted playsInline
+                style={{ width: '100%', display: 'block', maxHeight: 220, objectFit: 'cover', transform: 'scaleX(-1)', background: '#000' }}
+              />
+              <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem' }}>
+                <span className={`dot dot-${faceStatus === 'Face verified' ? 'green' : 'amber'}`} />
+                <span style={{ color: 'var(--text-secondary)' }}>{faceStatus}</span>
               </div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: trustColor, minWidth: 30 }}>{trustScore}%</span>
+            </div>
+
+            {/* Trust score */}
+            <div className="card" style={{ padding: '18px 16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Trust Score</span>
+                <span style={{ fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: '1.2rem', color: trustColor }}>{trustScore}%</span>
+              </div>
+              <div className="progress-bar" style={{ height: 6 }}>
+                <div style={{ height: '100%', borderRadius: 'var(--radius-full)', background: trustColor, width: `${trustScore}%`, transition: 'width 0.4s' }} />
+              </div>
+              <p style={{ marginTop: 8, fontSize: '0.75rem' }}>Face alerts: {faceAlerts}</p>
+            </div>
+
+            {/* Guidelines */}
+            <div className="card" style={{ padding: '16px' }}>
+              <div style={{ fontWeight: 600, fontSize: '0.82rem', marginBottom: 10, color: 'var(--text-primary)' }}>Interview Guidelines</div>
+              {['Stay in frame throughout the interview', 'Speak clearly — only one person', '120 seconds maximum per answer', 'Answer in your selected language'].map(t => (
+                <div key={t} style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: '0.78rem', color: 'var(--text-secondary)', alignItems: 'flex-start' }}>
+                  <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--blue)', marginTop: 7, flexShrink: 0 }} />
+                  {t}
+                </div>
+              ))}
             </div>
           </div>
-          {phase === 'recording' && (
-            <div style={{ textAlign: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: timeLeft <= 15 ? '#EF4444' : '#F1F5F9', fontFamily: 'monospace', lineHeight: 1 }}>
-                {String(Math.floor(timeLeft / 60)).padStart(2,'0')}:{String(timeLeft % 60).padStart(2,'0')}
-              </div>
-              <div style={{ fontSize: '0.65rem', color: '#64748B' }}>left</div>
-            </div>
-          )}
-        </div>
-
-        {/* Question area */}
-        <div style={{ flex: 1, overflow: 'auto', padding: '20px 20px 0' }}>
-          {phase !== 'submitting' && questions[qIndex] && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#312E81', padding: '4px 10px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600, color: '#A5B4FC', marginBottom: 12 }}>
-                <span>📝</span> Question {qIndex + 1}
-              </div>
-              <div style={{ background: '#1E293B', border: '1px solid #334155', borderRadius: 12, padding: '18px 18px' }}>
-                <p style={{ fontSize: '1rem', lineHeight: 1.7, color: '#F1F5F9', margin: 0, fontWeight: 500 }}>
-                  {questions[qIndex]}
-                </p>
-              </div>
-              {phase === 'recording' && (
-                <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', display: 'inline-block', animation: 'pulse 1s infinite' }} />
-                  <span style={{ fontSize: '0.82rem', color: '#FCA5A5', fontWeight: 500 }}>Recording — Speak in {LANG_LABELS[language]}</span>
-                </div>
-              )}
-              {phase === 'countdown' && (
-                <div style={{ marginTop: 16, textAlign: 'center', padding: '24px 0' }}>
-                  <div style={{ fontSize: '5rem', fontWeight: 900, color: '#6366F1', lineHeight: 1 }}>{countdown}</div>
-                  <p style={{ color: '#64748B', marginTop: 8, fontSize: '0.9rem' }}>Get ready to answer...</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Transcript review */}
-          {phase === 'review' && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <h4 style={{ color: '#F1F5F9', fontSize: '0.9rem', margin: 0 }}>Your Answer</h4>
-                <span style={{ fontSize: '0.7rem', padding: '3px 8px', background: '#065F46', color: '#34D399', borderRadius: 4 }}>Transcribed</span>
-              </div>
-              <textarea
-                style={{ width: '100%', background: '#1E293B', border: '1px solid #334155', borderRadius: 8, color: '#F1F5F9', padding: '14px', fontSize: '0.9rem', lineHeight: 1.6, resize: 'vertical', outline: 'none', fontFamily: 'inherit', minHeight: 120, boxSizing: 'border-box' }}
-                value={transcript}
-                onChange={e => setTranscript(e.target.value)}
-                placeholder="Your transcribed answer will appear here. You can edit it if needed."
-              />
-              {error && <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(239,68,68,0.1)', color: '#FCA5A5', borderRadius: 6, fontSize: '0.82rem' }}>{error}</div>}
-            </div>
-          )}
-
-          {phase === 'processing' && (
-            <div style={{ textAlign: 'center', padding: '40px 0' }}>
-              <div className="spinner" style={{ width: 32, height: 32, borderWidth: 3, borderColor: 'rgba(99,102,241,0.2)', borderTopColor: '#6366F1', margin: '0 auto 16px' }} />
-              <p style={{ color: '#64748B', fontSize: '0.9rem' }}>Transcribing your answer...</p>
-            </div>
-          )}
-
-          {phase === 'submitting' && (
-            <div style={{ textAlign: 'center', padding: '60px 24px' }}>
-              <div className="spinner" style={{ width: 48, height: 48, borderWidth: 4, borderColor: 'rgba(99,102,241,0.2)', borderTopColor: '#6366F1', margin: '0 auto 20px' }} />
-              <h3 style={{ color: '#F1F5F9', marginBottom: 10 }}>Evaluating your interview</h3>
-              <p style={{ color: '#64748B', fontSize: '0.88rem', lineHeight: 1.6 }}>Gemini AI is analysing all your answers.<br />This takes 20–40 seconds. Do not close the app.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Bottom action bar */}
-        <div style={{ padding: '16px 20px 32px', background: '#0F172A', borderTop: '1px solid #1E293B', flexShrink: 0 }}>
-          {phase === 'ready' && (
-            <button onClick={startCountdown} style={styles.primaryBtn}>
-              🎙 Start Recording
-            </button>
-          )}
-          {phase === 'recording' && (
-            <button onClick={stopRecording} style={{ ...styles.primaryBtn, background: '#DC2626' }}>
-              ⏹ Stop & Submit Answer
-            </button>
-          )}
-          {phase === 'review' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button onClick={saveAnswer} style={styles.primaryBtn}>
-                {qIndex + 1 >= TOTAL_QUESTIONS ? '✅ Submit Interview' : '→ Next Question'}
-              </button>
-              <button onClick={() => { setTranscript(''); startCountdown(); }} style={styles.ghostBtn}>
-                🔄 Re-record Answer
-              </button>
-            </div>
-          )}
         </div>
       </div>
-
-      <style>{`
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-        @keyframes slideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
-      `}</style>
     </div>
   );
 }
-
-const styles = {
-  fullCenter: {
-    minHeight: '100vh', display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center', background: '#0F172A', padding: 24
-  },
-  primaryBtn: {
-    width: '100%', padding: '16px', borderRadius: 12,
-    background: 'linear-gradient(135deg, #6366F1, #8B5CF6)', color: '#fff',
-    border: 'none', fontSize: '1rem', fontWeight: 700, cursor: 'pointer',
-    fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.01em'
-  },
-  ghostBtn: {
-    width: '100%', padding: '13px', borderRadius: 12,
-    background: 'transparent', color: '#94A3B8',
-    border: '1px solid #334155', fontSize: '0.9rem', fontWeight: 500,
-    cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif'
-  },
-};

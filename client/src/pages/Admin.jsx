@@ -144,10 +144,6 @@ export default function Admin() {
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowAddInterview(true)}>+ Add Interview</button>
-          <button className="btn btn-ghost btn-sm" onClick={fetchCandidates}>Refresh</button>
-          <div style={{ width: 1, height: 16, background: 'var(--border)' }}></div>
-          
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ 
               width: 32, height: 32, borderRadius: '50%', background: 'var(--brand-light)', color: 'var(--brand-primary)', 
