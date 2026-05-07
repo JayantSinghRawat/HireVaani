@@ -119,12 +119,7 @@ npm run dev
 
 The application will be accessible at `http://localhost:5173`.
 
----
 
-## 👥 Team
-**HireVaani**
-
-**Hackathon:** AI for Bharat · Theme 5: AI SkillFit
 
 ---
 
