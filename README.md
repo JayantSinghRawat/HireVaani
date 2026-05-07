@@ -138,4 +138,10 @@ The system tracks the candidate's presence in real-time:
 
 ---
 
+## Team — HireVaani
 
+*   **Harshitha GG**
+*   **Ishita Gautam**
+*   **Jayant Singh Rawat**
+
+**Hackathon:** AI for Bharat · Theme 5: AI SkillFit
