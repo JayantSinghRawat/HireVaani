@@ -487,12 +487,13 @@ export default function Admin() {
         .badge-gray { background: #F3F4F6; color: #6B7280; }
 
         @media (max-width: 850px) {
+          .admin-layout { flex-direction: column; }
           .sidebar { position: fixed; transform: translateX(-100%); width: 280px; }
           .sidebar.open { transform: translateX(0); }
           .sidebar-overlay.show { display: block; }
-          .mobile-header { display: flex; }
+          .mobile-header { display: flex; width: 100%; }
           .close-sidebar-btn { display: block; }
-          .main-content { padding: 16px; padding-top: 24px; }
+          .main-content { padding: 16px; padding-top: 24px; width: 100%; flex: 1; }
           
           .page-header { flex-direction: column; align-items: flex-start; gap: 16px; }
           .create-btn-enhanced { width: 100%; justify-content: center; }
