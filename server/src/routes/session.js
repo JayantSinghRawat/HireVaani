@@ -8,6 +8,7 @@ const isMongoConnected = () => mongoose.connection.readyState === 1;
 
 // POST /api/session  → create new session
 router.post('/', async (req, res) => {
+  console.log('[session] Creating session for:', req.body);
   try {
     const { name, role, language, email } = req.body;
     
@@ -16,24 +17,38 @@ router.post('/', async (req, res) => {
     }
 
     // Prevent retakes if email is provided
+    let isDuplicate = false;
     if (email && email.trim()) {
       try {
         let existing = null;
         if (isMongoConnected()) {
-          existing = await Candidate.findOne({ email: email.trim(), role, status: 'completed' });
+          existing = await Candidate.findOne({ 
+            email: email.trim().toLowerCase(), 
+            role: role, 
+            status: 'completed' 
+          }).lean();
         } else {
-          existing = [...memStore.values()].find(c => c.email === email.trim() && c.role === role && c.status === 'completed');
+          existing = [...memStore.values()].find(c => 
+            c.email && c.email.trim().toLowerCase() === email.trim().toLowerCase() && 
+            c.role === role && 
+            c.status === 'completed'
+          );
         }
 
         if (existing) {
-          return res.status(400).json({ 
-            error: 'Duplicate Interview', 
-            message: 'You have already completed an interview for this role. Retakes are not permitted.' 
-          });
+          isDuplicate = true;
         }
       } catch (err) {
-        console.warn('[session] Duplicate check failed (ignoring):', err.message);
+        console.error('[session] Duplicate check error:', err.message);
+        // We continue if check fails to not block users due to DB issues
       }
+    }
+
+    if (isDuplicate) {
+      return res.status(400).json({ 
+        error: 'Duplicate Interview', 
+        message: 'You have already completed an interview for this role. Retakes are not permitted.' 
+      });
     }
 
     const sessionId = uuidv4();
@@ -52,8 +67,12 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({ sessionId });
   } catch (err) {
-    console.error('[session] Error:', err);
-    res.status(500).json({ error: 'Failed to create session. Please try again.' });
+    console.error('[session] Global error:', err);
+    res.status(500).json({ 
+      error: 'Server Error', 
+      details: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined 
+    });
   }
 });
 

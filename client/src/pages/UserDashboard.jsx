@@ -83,8 +83,9 @@ export default function UserDashboard() {
     try {
       const { data } = await axios.post(`${API}/session`, form);
       navigate('/interview', { state: { sessionId: data.sessionId, ...form } });
-    } catch {
-      setError('Failed to create session. Please check your connection or server status.');
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to create session. Please check your connection or server status.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
