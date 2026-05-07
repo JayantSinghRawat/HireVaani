@@ -4,7 +4,7 @@ const { evaluateAnswer, generateFitment } = require('../services/gemini');
 const mongoose  = require('mongoose');
 
 // In-memory fallback store
-const memStore = new Map();
+const memStore = require('../data/memStore');
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -98,4 +98,3 @@ router.post('/', async (req, res) => {
 
 // Export memStore so candidates route can use it
 module.exports = router;
-module.exports.memStore = memStore;

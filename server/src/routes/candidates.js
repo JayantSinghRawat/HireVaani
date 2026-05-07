@@ -2,7 +2,7 @@ const router   = require('express').Router();
 const Candidate = require('../models/Candidate');
 const { auth }  = require('../middleware/auth');
 const mongoose  = require('mongoose');
-const { memStore } = require('./evaluate');
+const memStore = require('../data/memStore');
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
