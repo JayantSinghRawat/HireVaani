@@ -1,90 +1,89 @@
-# ⚡ HireVaani — AI-Powered Multilingual Interview Platform
+# ⚡ HireVaani — AI-Led Multilingual Assessment Platform
 
 > **AI for Bharat · Theme 5: AI SkillFit**  
-> A premium, multilingual video assessment platform. Record interviews in **Kannada**, **Hindi**, or **English**. AI evaluates skills, monitors proctoring trust, and delivers instant, explainable fitment decisions.
+> A scalable, AI-driven candidate screening prototype designed for the Indian workforce. Supporting **Kannada-first** multilingual interactions, reliable skill classification, and fraud detection.
 
 ---
 
-## 🎯 Overview
+## 🎯 Solution Overview
 
-HireVaani is a state-of-the-art AI video interview platform designed for the diverse Indian workforce. It bridges the gap between language barriers and technical assessment by allowing candidates to express themselves in their native tongue.
+HireVaani addresses the challenge of large-scale candidate screening for the blue-collar and semi-skilled workforce. It provides an end-to-end AI agent that handles the entire interview process, assessment, and classification for government and enterprise stakeholders.
 
-### ✨ Key Features
+---
 
-*   **🌑 Premium Monochrome UI**: A sleek, high-contrast Black & White design system for a professional, focused experience.
-*   **🌍 Multilingual STT**: Seamless transcription using **Sarvam AI Saaras v2** for Hindi, Kannada, and English.
-*   **🧠 Deep AI Evaluation**: Instant analysis using **Google Gemini 1.5 Flash**, providing detailed skill breakdowns and fitment rationales.
-*   **🛡️ Proctored Environment**: Real-time face monitoring via **MediaPipe** to calculate a dynamic **Trust Score**.
-*   **🗓️ Advanced Scheduling**: Organizers can set **Start Dates** and **Deadline Dates** to automate hiring drives.
-*   **🎯 Custom Roles**: Create interviews for any position (e.g., "Senior Teacher", "DevOps Lead") with tailor-made descriptions.
-*   **📱 Fully Responsive**: Optimized for both Desktop and Mobile — recruiters can manage candidates on the go.
+## 🚀 Core Features (Mapping to Requirements)
+
+### 1. AI-Led Video Interview
+*   **Mobile-First Experience**: A fully responsive interface designed for candidates on any device.
+*   **Structured AI Interaction**: An AI agent asks role-specific questions via a voice + video interface.
+*   **Kannada-First Multilingual Support**: Deep integration with **Sarvam AI Saaras v2** to handle Kannada (including dialects), Hindi, and English.
+*   **Real-World Robustness**: Designed to process natural speech, including pauses, regional accents, and informal responses.
+
+### 2. Response Assessment Engine
+Leveraging **Google Gemini 1.5 Flash**, the platform evaluates:
+*   **Relevance & Completeness**: How accurately the candidate addresses the core requirements.
+*   **Communication Clarity**: Coherence and language expressiveness.
+*   **Skill Confidence**: Identifies subtle indicators of domain mastery and certainty.
+
+### 3. Face & Voice Validation (Proctoring)
+*   **Interview Quality**: Uses **MediaPipe FaceDetector** to ensure face visibility and presence throughout the session.
+*   **Audio Integrity**: Monitors audio continuity to detect poor-quality inputs or technical interruptions.
+
+### 4. Integrity & Duplicate Detection
+*   **Trust Score**: A dynamic score that flags suspicious patterns, impersonation attempts, or cases where the candidate leaves the frame.
+*   **Fraud Prevention**: Flags low-confidence or inconsistent submissions for manual audit.
+
+### 5. Candidate Fitment (Classification Layer)
+The platform automatically maps candidates into action-oriented categories:
+*   ✅ **Job-ready**: Strong performance across technical and communication dimensions.
+*   🛠️ **Requires Training / Upskilling**: Shows potential but lacks specific domain depth.
+*   🔍 **Requires Manual Verification**: Flagged by proctoring or inconsistent results.
+*   ⚠️ **Low-Confidence / Poor-Quality**: Submissions that don't meet basic assessment thresholds.
+*   🚫 **Suspected Duplicate / Fraud**: Flagged for integrity violations.
+
+### 6. Stakeholder Admin Dashboard
+A dedicated decision layer for government and organizational stakeholders:
+*   **Drill-Down Analytics**: Filter candidates by **Interview Role**, **Skill Score**, and **Language**.
+*   **Decision Layer**: View detailed interview summaries and AI-generated confidence scores.
+*   **Flagged Review**: A dedicated view to investigate cases flagged for integrity issues.
+*   **Direct Shortlisting**: Efficiently move candidates toward jobs, training programs, or further verification.
 
 ---
 
 ## 🏗️ Tech Stack
 
-| Layer | Technology |
+| Component | Technology |
 |---|---|
-| **Frontend** | React 18, Vite, Vanilla CSS (Premium Monochrome) |
-| **Charts** | Chart.js (Radar & Doughnut Analytics) |
-| **Proctoring** | MediaPipe FaceDetector (WASM-based browser tracking) |
-| **Speech-to-Text** | **Sarvam AI** (Regional Language Transcription) |
-| **LLM Engine** | **Google Gemini 1.5 Flash** (Evaluation & Reasoning) |
+| **Frontend** | React 18, Vite, Vanilla CSS (Mobile-Responsive) |
+| **STT Engine** | **Sarvam AI** (Kannada, Hindi, English) |
+| **Reasoning Engine** | **Google Gemini 1.5 Flash** |
+| **Proctoring** | MediaPipe (Real-time Face Tracking) |
 | **Backend** | Node.js 20, Express 5 |
-| **Database** | MongoDB Atlas (Persistent Mode) / In-Memory (Dev Mode) |
-
----
-
-## 📁 Project Structure
-
-```
-HireVaani/
-├── client/                     # React Frontend
-│   └── src/
-│       ├── App.jsx             # Router & Role-based access
-│       ├── index.css           # Global Design System (B&W Theme)
-│       └── pages/
-│           ├── UserDashboard.jsx # Candidate portal (History + Upcoming)
-│           ├── Admin.jsx       # Organizer portal (Interview-First Navigation)
-│           ├── Interview.jsx   # Live Recording & Proctored UI
-│           └── Result.jsx      # Performance & Fitment Analytics
-└── server/                     # Node.js Backend
-    ├── index.js                # Express entry point
-    └── src/
-        ├── services/           # Sarvam & Gemini Integrations
-        ├── models/             # Mongoose Schemas (Interview & Candidate)
-        └── routes/             # RESTful API Endpoints
-```
+| **Database** | MongoDB Atlas / In-Memory Store |
 
 ---
 
 ## ⚙️ Local Setup
 
-### 1 — Install Dependencies
-
 ```bash
-# Install server & client dependencies
+# 1. Install Dependencies
 cd server && npm install
 cd ../client && npm install
+
+# 2. Start Servers
+# Backend (Port 8000): cd server && npm run dev
+# Frontend (Port 5173): cd client && npm run dev
 ```
 
-### 2 — Environment Configuration
+---
 
-Create a `.env` file in the `server` directory:
+## 👥 Team
 
-```env
-SARVAM_API_KEY=your_sarvam_key
-GEMINI_API_KEY=your_gemini_key
-MONGODB_URI=your_mongo_uri (optional)
-JWT_SECRET=your_jwt_secret
-ADMIN_USER=admin
-ADMIN_PASS=admin123
-```
+*   **Harshitha GG**
+*   **Ishita Gautam**
+*   **Jayant Singh Rawat**
 
-### 3 — Run Development Servers
-
-**Backend:** `cd server && npm run dev` (Port 8000)  
-**Frontend:** `cd client && npm run dev` (Port 5173)
+**Hackathon:** AI for Bharat · Theme 5: AI SkillFit
 
 ---
 
