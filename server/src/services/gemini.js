@@ -11,46 +11,60 @@ const getClient = () => {
 };
 
 /**
- * Evaluate a single answer using Gemini
- * Returns structured JSON scores + feedback
+ * Evaluate a single answer using Gemini — extremely strict scoring
  */
 async function evaluateAnswer({ question, transcript, role, language }) {
   const model = getClient().getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-  const prompt = `You are a strict, top-tier technical and HR interviewer evaluating a candidate for the role of "${role}".
-The interview language is "${language}".
+  // Detect blank/no-answer responses immediately — don't even call Gemini
+  const cleaned = (transcript || '').trim();
+  const isBlankAnswer =
+    cleaned.length < 10 ||
+    ['[No audio recorded]', '[Transcription failed]', 'No audio', ''].includes(cleaned) ||
+    cleaned.split(' ').length < 4;
 
-QUESTION: ${question}
-CANDIDATE'S ANSWER (Transcribed from audio): "${transcript}"
+  if (isBlankAnswer) {
+    return {
+      isCorrect: false,
+      relevance: 0, clarity: 0, confidence: 0, technical: 0, communication: 0,
+      feedback: 'No meaningful answer was provided. This will significantly impact your evaluation.',
+    };
+  }
 
-CRITICAL INSTRUCTIONS FOR GRADING:
-1. You must determine if the answer is FACTUALLY AND TECHNICALLY CORRECT.
-2. If the answer is incorrect, vague, or dodges the question, "isCorrect" MUST be false, and all scores MUST be 0.
-3. Only score above 0 if the answer is actually correct and relevant.
-4. Be EXTREMELY STRICT. Generic buzzwords mean the answer is incorrect.
+  const prompt = `You are a ruthless, world-class interviewer evaluating a candidate for the role of "${role}". You have extremely high standards. Language: "${language}".
 
-Evaluate the answer on these 5 criteria (score 0-10 each):
-1. relevance: Does it directly answer the core of the question?
-2. clarity: Is it logically structured?
-3. confidence: Does the transcript show conviction?
-4. technical: Depth of domain expertise and correct terminology.
-5. communication: Professionalism and exactness.
+QUESTION ASKED: ${question}
+CANDIDATE'S TRANSCRIBED ANSWER: "${transcript}"
 
-Respond ONLY with valid JSON in this exact format:
+STRICT GRADING RULES — READ CAREFULLY:
+1. If the answer does not DIRECTLY address the question asked, ALL scores must be 0-2. 
+2. If the answer is vague, generic, or uses buzzwords without substance (e.g., "I use best practices", "I always communicate well"), scores must NOT exceed 3.
+3. Only award scores above 7 if the answer demonstrates clear, specific, technically accurate depth with real examples.
+4. If the candidate is clearly making things up or contradicting themselves, all scores must be 0-2.
+5. A score of 5 means mediocre — barely passing. A score of 8+ means exceptional.
+6. "confidence" should be 0 if the answer is rambling, incoherent, or off-topic.
+7. BE BRUTAL. The market is competitive. Most candidates do not deserve above 5.
+
+Score each dimension from 0 to 10:
+- relevance: Does it DIRECTLY and SPECIFICALLY answer what was asked?
+- clarity: Is the answer logically structured and easy to follow?
+- confidence: Does the candidate sound convincing and certain (NOT rambling)?
+- technical: Is there genuine domain expertise, correct terminology, and real depth?
+- communication: Is it professional, precise, and concise?
+
+Respond ONLY with this exact valid JSON (no markdown fences):
 {
-  "isCorrect": <boolean>,
-  "relevance": <number>,
-  "clarity": <number>,
-  "confidence": <number>,
-  "technical": <number>,
-  "communication": <number>,
-  "feedback": "<One sentence of STRICT, constructive feedback in ${language === 'hi' ? 'Hindi' : language === 'kn' ? 'Kannada' : 'English'}. Be direct about what was lacking or if it was incorrect.>"
+  "isCorrect": <true if the answer actually addresses the question meaningfully, else false>,
+  "relevance": <0-10>,
+  "clarity": <0-10>,
+  "confidence": <0-10>,
+  "technical": <0-10>,
+  "communication": <0-10>,
+  "feedback": "<1-2 sentences of HARSH, direct feedback. State exactly what was wrong or missing. Be specific. Language: ${language === 'hi' ? 'Hindi' : language === 'kn' ? 'Kannada' : 'English'}>"
 }`;
 
   const result = await model.generateContent(prompt);
   const text   = result.response.text().trim();
-
-  // Parse JSON — strip markdown code fences if present
   const jsonStr = text.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
   const parsed  = JSON.parse(jsonStr);
 
@@ -66,35 +80,39 @@ Respond ONLY with valid JSON in this exact format:
 }
 
 /**
- * Generate overall fitment decision using Gemini
+ * Generate overall fitment decision — AI acts as a hard-nosed hiring director
  */
 async function generateFitment({ role, overallScore, skillScores, trustScore, answers }) {
   const model = getClient().getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const summaries = answers.map((a, i) =>
-    `Q${i+1}: ${a.questionText}\nAnswer: ${a.transcript}\nScores: ${JSON.stringify(a.geminiScores)}`
-  ).join('\n\n');
+    `Q${i+1}: ${a.questionText}\nAnswer: "${a.transcript}"\nScores: ${JSON.stringify(a.geminiScores)}\nFeedback: ${a.geminiScores?.feedback || ''}`
+  ).join('\n\n---\n\n');
 
-  const prompt = `You are a strict, top-tier talent acquisition director evaluating a candidate for "${role}".
+  const prompt = `You are a hard-nosed talent acquisition director at a top-tier company. You are evaluating a candidate who just completed an AI interview for the role of "${role}".
 
-Overall Score: ${overallScore}/10
-Trust Score (face/audio consistency): ${trustScore}/100
-Skill Scores: ${JSON.stringify(skillScores)}
+CANDIDATE DATA:
+- Overall Score: ${overallScore}/10
+- Trust Score (integrity during interview): ${trustScore}/100
+- Skill Breakdown: ${JSON.stringify(skillScores)}
 
-Interview Summary:
+INTERVIEW TRANSCRIPT SUMMARY:
 ${summaries}
 
-CRITICAL INSTRUCTIONS FOR FITMENT:
-Be extremely rigorous. Only the absolute best candidates should be "Shortlisted".
-- If the Overall Score is below 5.5, or Trust Score is below 70, the decision MUST be "Not Fit".
-- If the Overall Score is between 5.5 and 7.5, the decision should likely be "Under Review".
-- Only "Shortlist" candidates who show exceptional technical depth and clear communication.
+YOUR TASK — Make a BINARY hiring recommendation. Follow these rules STRICTLY:
+- "Not Fit": Overall Score < 5.5 OR Trust Score < 60 OR any critical skill (technical, relevance) scored < 3 on average OR candidate gave blank/incoherent answers.
+- "Under Review": Score 5.5–7.0 AND trust >= 60. Some good answers but inconsistent depth.
+- "Shortlisted": Score > 7.0 AND trust >= 75 AND demonstrated genuine expertise across most answers. Only the top 10% of candidates deserve this.
+- If trust score is below 50, ALWAYS "Not Fit" regardless of score — interview integrity is non-negotiable.
+- Be extremely critical. Most candidates should get "Under Review" or "Not Fit".
 
-Based on this assessment, provide a fitment decision.
-Respond ONLY with valid JSON:
+Respond ONLY with this valid JSON (no markdown):
 {
   "decision": "<Shortlisted | Under Review | Not Fit>",
-  "reason": "<2–3 sentences of highly critical, direct explanation of why this decision was made. No fluff.>"
+  "reason": "<3-4 sentences. Be direct, critical, and specific. Reference actual answers or gaps. State what disqualified them or what impressed you. No corporate fluff.>",
+  "hiringRecommendation": "<one word: HIRE | HOLD | REJECT>",
+  "keyStrengths": ["<strength 1>", "<strength 2>"],
+  "criticalWeaknesses": ["<weakness 1>", "<weakness 2>"]
 }`;
 
   const result = await model.generateContent(prompt);
@@ -106,7 +124,10 @@ Respond ONLY with valid JSON:
     decision: ['Shortlisted','Under Review','Not Fit'].includes(parsed.decision)
       ? parsed.decision
       : 'Under Review',
-    reason: parsed.reason || '',
+    reason:   parsed.reason || '',
+    hiringRecommendation: parsed.hiringRecommendation || 'HOLD',
+    keyStrengths:         parsed.keyStrengths || [],
+    criticalWeaknesses:   parsed.criticalWeaknesses || [],
   };
 }
 

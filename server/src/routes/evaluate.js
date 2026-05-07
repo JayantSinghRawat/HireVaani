@@ -24,7 +24,8 @@ router.post('/', async (req, res) => {
 
     for (let i = 0; i < answers.length; i++) {
       const { questionText, transcript } = answers[i];
-      let scores = { relevance: 5, clarity: 5, confidence: 5, technical: 5, communication: 5, feedback: '' };
+      // Default to 0 — no answer = no score
+      let scores = { relevance: 0, clarity: 0, confidence: 0, technical: 0, communication: 0, feedback: 'Answer was not provided or could not be evaluated.' };
 
       if (transcript && transcript.trim().length > 5) {
         try {
@@ -59,19 +60,26 @@ router.post('/', async (req, res) => {
     // ── Fitment decision ──────────────────────────────────
     let fitmentDecision = 'Under Review';
     let fitmentReason   = '';
+    let hiringRecommendation = 'HOLD';
+    let keyStrengths = [];
+    let criticalWeaknesses = [];
     try {
       const fit = await generateFitment({ role, overallScore, skillScores, trustScore, answers: evaluatedAnswers });
       fitmentDecision = fit.decision;
       fitmentReason   = fit.reason;
+      hiringRecommendation = fit.hiringRecommendation || 'HOLD';
+      keyStrengths = fit.keyStrengths || [];
+      criticalWeaknesses = fit.criticalWeaknesses || [];
     } catch (e) {
       console.warn('[gemini] Fitment failed:', e.message);
       fitmentDecision = overallScore >= 7 ? 'Shortlisted' : overallScore >= 5 ? 'Under Review' : 'Not Fit';
-      fitmentReason   = 'Evaluated based on score thresholds.';
+      fitmentReason   = 'Evaluated based on score thresholds due to AI service error.';
     }
 
     const record = { sessionId, name: name || 'Anonymous', role, language, email: email || '',
       answers: evaluatedAnswers, trustScore, skillScores, overallScore,
-      fitmentDecision, fitmentReason, faceAlerts, status: 'completed' };
+      fitmentDecision, fitmentReason, hiringRecommendation, keyStrengths, criticalWeaknesses,
+      faceAlerts, status: 'completed' };
 
     // ── Persist ───────────────────────────────────────────
     if (isMongoConnected()) {
@@ -80,7 +88,8 @@ router.post('/', async (req, res) => {
       memStore.set(sessionId, { ...record, createdAt: new Date(), updatedAt: new Date() });
     }
 
-    res.json({ sessionId, overallScore, skillScores, trustScore, fitmentDecision, fitmentReason, answers: evaluatedAnswers });
+    res.json({ sessionId, overallScore, skillScores, trustScore, fitmentDecision, fitmentReason,
+      hiringRecommendation, keyStrengths, criticalWeaknesses, answers: evaluatedAnswers });
   } catch (err) {
     console.error('[evaluate]', err);
     res.status(500).json({ error: err.message });
