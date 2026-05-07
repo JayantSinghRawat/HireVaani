@@ -1,7 +1,8 @@
 # ⚡ HireVaani — AI-Led Multilingual Assessment Platform
 
 > **AI for Bharat · Theme 5: AI SkillFit**  
-> A scalable, AI-driven candidate screening prototype designed for the Indian workforce. Supporting **Kannada-first** multilingual interactions, reliable skill classification, and fraud detection.
+> **Team Name:** HireVaani  
+> A scalable, AI-driven candidate screening prototype designed for the Indian workforce. Supporting **Kannada-first** multilingual interactions, reliable skill classification, and real-time proctoring.
 
 ---
 
@@ -11,77 +12,117 @@ HireVaani addresses the challenge of large-scale candidate screening for the blu
 
 ---
 
-## 🚀 Core Features (Mapping to Requirements)
+## 🏗️ System Architecture
 
-### 1. AI-Led Video Interview
-*   **Mobile-First Experience**: A fully responsive interface designed for candidates on any device.
-*   **Structured AI Interaction**: An AI agent asks role-specific questions via a voice + video interface.
-*   **Kannada-First Multilingual Support**: Deep integration with **Sarvam AI Saaras v2** to handle Kannada (including dialects), Hindi, and English.
-*   **Real-World Robustness**: Designed to process natural speech, including pauses, regional accents, and informal responses.
-
-### 2. Response Assessment Engine
-Leveraging **Google Gemini 1.5 Flash**, the platform evaluates:
-*   **Relevance & Completeness**: How accurately the candidate addresses the core requirements.
-*   **Communication Clarity**: Coherence and language expressiveness.
-*   **Skill Confidence**: Identifies subtle indicators of domain mastery and certainty.
-
-### 3. Face & Voice Validation (Proctoring)
-*   **Interview Quality**: Uses **MediaPipe FaceDetector** to ensure face visibility and presence throughout the session.
-*   **Audio Integrity**: Monitors audio continuity to detect poor-quality inputs or technical interruptions.
-
-### 4. Integrity & Duplicate Detection
-*   **Trust Score**: A dynamic score that flags suspicious patterns, impersonation attempts, or cases where the candidate leaves the frame.
-*   **Fraud Prevention**: Flags low-confidence or inconsistent submissions for manual audit.
-
-### 5. Candidate Fitment (Classification Layer)
-The platform automatically maps candidates into action-oriented categories:
-*   ✅ **Job-ready**: Strong performance across technical and communication dimensions.
-*   🛠️ **Requires Training / Upskilling**: Shows potential but lacks specific domain depth.
-*   🔍 **Requires Manual Verification**: Flagged by proctoring or inconsistent results.
-*   ⚠️ **Low-Confidence / Poor-Quality**: Submissions that don't meet basic assessment thresholds.
-*   🚫 **Suspected Duplicate / Fraud**: Flagged for integrity violations.
-
-### 6. Stakeholder Admin Dashboard
-A dedicated decision layer for government and organizational stakeholders:
-*   **Drill-Down Analytics**: Filter candidates by **Interview Role**, **Skill Score**, and **Language**.
-*   **Decision Layer**: View detailed interview summaries and AI-generated confidence scores.
-*   **Flagged Review**: A dedicated view to investigate cases flagged for integrity issues.
-*   **Direct Shortlisting**: Efficiently move candidates toward jobs, training programs, or further verification.
-
----
-
-## 🏗️ Tech Stack
-
-| Component | Technology |
-|---|---|
-| **Frontend** | React 18, Vite, Vanilla CSS (Mobile-Responsive) |
-| **STT Engine** | **Sarvam AI** (Kannada, Hindi, English) |
-| **Reasoning Engine** | **Google Gemini 1.5 Flash** |
-| **Proctoring** | MediaPipe (Real-time Face Tracking) |
-| **Backend** | Node.js 20, Express 5 |
-| **Database** | MongoDB Atlas / In-Memory Store |
-
----
-
-## ⚙️ Local Setup
-
-```bash
-# 1. Install Dependencies
-cd server && npm install
-cd ../client && npm install
-
-# 2. Start Servers
-# Backend (Port 8000): cd server && npm run dev
-# Frontend (Port 5173): cd client && npm run dev
+```mermaid
+graph TD
+    A[Candidate Mobile/Web UI] -->|Video/Audio Stream| B[Proctoring Engine - MediaPipe]
+    A -->|Voice Recording| C[STT Service - Sarvam AI]
+    C -->|Transcript| D[AI Evaluation Engine - Google Gemini]
+    B -->|Trust Score| D
+    D -->|Fitment Decision| E[Decision Layer]
+    E --> F[(MongoDB Atlas)]
+    G[Admin Dashboard] -->|Query/Action| F
+    G -->|Filter/Review| E
 ```
 
 ---
 
-## 👥 Team
+## 🚀 Core Features (Functional Prototype)
 
-*   **Harshitha GG**
-*   **Ishita Gautam**
-*   **Jayant Singh Rawat**
+### 1. AI-Led Video Interview
+*   **Multilingual Support**: Full voice-to-text integration for **Kannada**, **Hindi**, and **English** using Sarvam AI.
+*   **Structured Questioning**: Dynamic AI-led interview flow based on selected job roles.
+*   **Natural Speech Handling**: Robust processing of real-world speech patterns, including regional accents.
+
+### 2. Response Assessment
+*   **Automated Evaluation**: Gemini-powered analysis of responses for relevance, clarity, and domain confidence.
+*   **Fitment Classification**: Automatic categorization into:
+    *   ✅ **Job-ready**
+    *   🛠️ **Requires Training**
+    *   🔍 **Manual Verification**
+    *   ⚠️ **Low-Confidence**
+
+### 3. Integrity & Proctoring
+*   **Face Tracking**: Real-time monitoring using MediaPipe to detect frame exits or multiple faces.
+*   **Trust Score**: A dynamic integrity metric generated per session to flag suspicious behavior.
+
+### 4. Admin Decision Dashboard
+*   **Interview Management**: Create roles with custom descriptions and set **Start/Deadline** dates.
+*   **Candidate Drill-down**: Detailed view of AI transcripts, skill radar charts, and proctoring logs.
+*   **Stakeholder Tools**: Filter by role, skill, and language to streamline shortlisting.
+
+---
+
+## 🛠️ Detailed Setup Guide
+
+### 1. Prerequisites
+*   **Node.js**: v18.x or higher
+*   **npm**: v9.x or higher
+*   **Browser**: Google Chrome (required for MediaPipe WASM features)
+*   **API Keys**: You will need keys from **Sarvam AI** and **Google AI Studio (Gemini)**.
+
+### 2. Installation
+
+Clone the repository and install dependencies for both the frontend and backend:
+
+```bash
+# Clone the repository
+git clone https://github.com/JayantSinghRawat/HireVaani.git
+cd HireVaani
+
+# Install Server dependencies
+cd server
+npm install
+
+# Install Client dependencies
+cd ../client
+npm install
+```
+
+### 3. Configuration
+
+Create a `.env` file in the `server` directory and populate it with the following:
+
+```env
+# API Keys
+SARVAM_API_KEY=your_sarvam_api_key
+GEMINI_API_KEY=your_gemini_api_key
+
+# Database (Leave blank for In-Memory/Dev mode)
+MONGODB_URI=your_mongodb_connection_string
+
+# Security
+JWT_SECRET=your_secret_string
+ADMIN_USER=admin
+ADMIN_PASS=admin123
+
+# Server Config
+PORT=8000
+```
+
+### 4. Running the Application
+
+You need to run both the backend and frontend simultaneously.
+
+**Start Backend (Terminal 1):**
+```bash
+cd server
+npm run dev
+```
+
+**Start Frontend (Terminal 2):**
+```bash
+cd client
+npm run dev
+```
+
+The application will be accessible at `http://localhost:5173`.
+
+---
+
+## 👥 Team
+**HireVaani**
 
 **Hackathon:** AI for Bharat · Theme 5: AI SkillFit
 
