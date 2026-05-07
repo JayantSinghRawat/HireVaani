@@ -168,8 +168,8 @@ export default function UserDashboard() {
                   <div style={{ padding: '24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                       <div>
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>{iv.companyName}</h3>
-                        <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>{ROLES.find(r => r.value === iv.role)?.label}</div>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>{ROLES.find(r => r.value === iv.role)?.label || iv.role}</h3>
+                        <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>{iv.companyName}</div>
                       </div>
                       <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '4px 8px', background: '#F3F4F6', color: '#000', borderRadius: '4px' }}>{iv.status}</span>
                     </div>
@@ -249,9 +249,14 @@ export default function UserDashboard() {
                 </div>
                 <div style={{ marginBottom: 20 }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, color: '#374151', marginBottom: 6 }}>Role</label>
-                  <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} required style={{ width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem', background: '#fff' }}>
-                    {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                  </select>
+                  {interviews.some(iv => iv.role === form.role) ? (
+                    <input value={ROLES.find(r => r.value === form.role)?.label || form.role} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem', outline: 'none', background: '#F9FAFB', cursor: 'not-allowed' }} />
+                  ) : (
+                    <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} required style={{ width: '100%', padding: '10px 12px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem', background: '#fff' }}>
+                      <option value="">Select a role</option>
+                      {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                    </select>
+                  )}
                 </div>
                 <div style={{ marginBottom: 24 }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, color: '#374151', marginBottom: 8 }}>Language</label>
@@ -277,11 +282,12 @@ export default function UserDashboard() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, background: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setSelectedInterview(null)}>
            <div style={{ background: '#FFFFFF', width: '100%', maxWidth: 600, borderRadius: '16px', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
               <div style={{ padding: '24px 32px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between' }}>
-                <h3 style={{ margin: 0 }}>{selectedInterview.companyName} Details</h3>
+                <h3 style={{ margin: 0 }}>{ROLES.find(r => r.value === selectedInterview.role)?.label || selectedInterview.role} Details</h3>
                 <button onClick={() => setSelectedInterview(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>✕</button>
               </div>
               <div style={{ padding: '32px' }}>
-                <p><b>Role:</b> {ROLES.find(r => r.value === selectedInterview.role)?.label}</p>
+                <p><b>Company:</b> {selectedInterview.companyName}</p>
+                <p><b>Role:</b> {ROLES.find(r => r.value === selectedInterview.role)?.label || selectedInterview.role}</p>
                 <p><b>Description:</b> {selectedInterview.description}</p>
                 <p><b>Instructions:</b> {selectedInterview.instructions}</p>
               </div>
