@@ -1,4 +1,4 @@
-# ⚡ HireVaani — AI-Led Multilingual Assessment Platform
+# HireVaani — AI-Led Multilingual Assessment Platform
 
 > **AI for Bharat · Theme 5: AI SkillFit**  
 > **Team Name:** HireVaani  
@@ -6,13 +6,13 @@
 
 ---
 
-## 🎯 Solution Overview
+## Solution Overview
 
 HireVaani addresses the challenge of large-scale candidate screening for the blue-collar and semi-skilled workforce. It provides an end-to-end AI agent that handles the entire interview process, assessment, and classification for government and enterprise stakeholders.
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -28,7 +28,7 @@ graph TD
 
 ---
 
-## 🚀 Core Features (Functional Prototype)
+## Core Features (Functional Prototype)
 
 ### 1. AI-Led Video Interview
 *   **Multilingual Support**: Full voice-to-text integration for **Kannada**, **Hindi**, and **English** using Sarvam AI.
@@ -38,10 +38,10 @@ graph TD
 ### 2. Response Assessment
 *   **Automated Evaluation**: Gemini-powered analysis of responses for relevance, clarity, and domain confidence.
 *   **Fitment Classification**: Automatic categorization into:
-    *   ✅ **Job-ready**
-    *   🛠️ **Requires Training**
-    *   🔍 **Manual Verification**
-    *   ⚠️ **Low-Confidence**
+    *   **Job-ready**
+    *   **Requires Training**
+    *   **Manual Verification**
+    *   **Low-Confidence**
 
 ### 3. Integrity & Proctoring
 *   **Face Tracking**: Real-time monitoring using MediaPipe to detect frame exits or multiple faces.
@@ -54,7 +54,7 @@ graph TD
 
 ---
 
-## 🛠️ Detailed Setup Guide
+## Detailed Setup Guide
 
 ### 1. Prerequisites
 *   **Node.js**: v18.x or higher
@@ -121,7 +121,7 @@ The application will be accessible at `http://localhost:5173`.
 
 
 
-## 📊 Evaluation & Proctoring
+## Evaluation & Proctoring
 
 ### AI Skill Radar
 Gemini evaluates every response across 5 critical dimensions:
@@ -138,11 +138,4 @@ The system tracks the candidate's presence in real-time:
 
 ---
 
-## 👥 Team — HireVaani
-
-*   **Harshitha GG**
-*   **Ishita Gautam**
-*   **Jayant Singh Rawat**
-
-**Hackathon:** AI for Bharat · Theme 5: AI SkillFit
 
