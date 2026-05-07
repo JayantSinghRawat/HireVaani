@@ -26,14 +26,23 @@ const SKILL_LABELS = ['Relevance', 'Clarity', 'Confidence', 'Technical', 'Commun
 const TOTAL_QUESTIONS = 5;
 
 export default function Result() {
-  const { state } = useLocation();
+  const { state: locationState } = useLocation();
   const navigate  = useNavigate();
 
-  useEffect(() => { if (!state?.sessionId) navigate('/'); }, [state, navigate]);
+  // Normalize state (handle both direct state and nested { result: ... } from dashboard)
+  const state = locationState?.result || locationState;
+
+  useEffect(() => { 
+    if (!state?.sessionId) {
+      console.warn('No session ID found in state, redirecting...');
+      navigate('/dashboard'); 
+    }
+  }, [state, navigate]);
+
   if (!state) return null;
 
   const {
-    name, role, language,
+    name = 'User', role = 'software_engineer', language = 'en',
     overallScore = 0, skillScores = {}, trustScore = 0,
     fitmentDecision = 'Pending', fitmentReason = '',
     answers = [],
