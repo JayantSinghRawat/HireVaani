@@ -91,7 +91,7 @@ export default function Result() {
         <span className="navbar-brand">HireVaani</span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
           <Link to="/" className="btn btn-outline btn-sm">New Interview</Link>
-          <Link to="/admin/login" className="btn btn-ghost btn-sm">Admin</Link>
+          <Link to="/admin" className="btn btn-ghost btn-sm">Admin</Link>
         </div>
       </nav>
 
@@ -103,28 +103,26 @@ export default function Result() {
         </div>
 
         {/* Fitment banner */}
-        <div className="card fade-in fade-in-1" style={{ padding: '24px 28px', marginBottom: 24, background: dc.bg, border: `1.5px solid ${dc.border}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: dc.color, marginBottom: 6 }}>
-                AI Fitment Decision
-              </div>
-              <div style={{ fontFamily: 'var(--font-head)', fontSize: '1.75rem', fontWeight: 800, color: dc.color, marginBottom: 8 }}>
-                {fitmentDecision}
-              </div>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0 }}>{fitmentReason}</p>
+        <div className="card fade-in fade-in-1 fitment-banner" style={{ padding: '24px 28px', marginBottom: 24, background: dc.bg, border: `1.5px solid ${dc.border}`, display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: dc.color, marginBottom: 6 }}>
+              AI Fitment Decision
             </div>
-            <div style={{ textAlign: 'center', flexShrink: 0 }}>
-              <div style={{ fontFamily: 'var(--font-head)', fontSize: '2.5rem', fontWeight: 800, color: scoreColor, lineHeight: 1 }}>
-                {overallScore}
-              </div>
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 4 }}>out of 10</div>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: '1.75rem', fontWeight: 800, color: dc.color, marginBottom: 8 }}>
+              {fitmentDecision}
             </div>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0 }}>{fitmentReason}</p>
+          </div>
+          <div style={{ textAlign: 'center', flexShrink: 0 }}>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: '2.5rem', fontWeight: 800, color: scoreColor, lineHeight: 1 }}>
+              {overallScore}
+            </div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 4 }}>out of 10</div>
           </div>
         </div>
 
         {/* Charts grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+        <div className="result-grid">
           {/* Radar */}
           <div className="card fade-in fade-in-2" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -212,11 +210,36 @@ export default function Result() {
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 12 }}>
-          <Link to="/" className="btn btn-outline btn-lg">Start New Interview</Link>
-          <Link to="/admin/login" className="btn btn-ghost btn-lg">Go to Admin Dashboard</Link>
+        <div className="result-actions" style={{ display: 'flex', gap: 12 }}>
+          <Link to="/dashboard" className="btn btn-primary btn-lg">Back to Dashboard</Link>
+          <Link to="/admin" className="btn btn-outline btn-lg">Organizer View</Link>
         </div>
       </div>
+
+      <style>{`
+        .result-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          margin-bottom: 24px;
+        }
+        @media (max-width: 768px) {
+          .result-grid {
+            grid-template-columns: 1fr;
+          }
+          .fitment-banner {
+            flex-direction: column !important;
+            text-align: center;
+            padding: 24px 20px !important;
+          }
+          .result-actions {
+            flex-direction: column;
+          }
+          .result-actions .btn {
+            width: 100%;
+          }
+        }
+      `}</style>
     </div>
   );
 }

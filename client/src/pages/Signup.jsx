@@ -26,10 +26,10 @@ export default function Signup() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyItems: 'center', background: 'var(--bg-secondary)', padding: '24px' }}>
 
-      <div className="card fade-in" style={{ width: '100%', maxWidth: 960, display: 'grid', gridTemplateColumns: '1fr 1fr', overflow: 'hidden', padding: 0, margin: 'auto' }}>
+      <div className="auth-card fade-in">
         
         {/* Left panel */}
-        <div style={{ background: 'var(--bg-card)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 48px', borderRight: '1px solid var(--border)' }}>
+        <div className="auth-sidebar" style={{ background: 'var(--bg-card)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 48px', borderRight: '1px solid var(--border)' }}>
           <div className="fade-in-1">
             <div style={{ marginBottom: 40, display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 36, height: 36, borderRadius: '8px', background: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -136,7 +136,35 @@ export default function Signup() {
             </div>
           </div>
         </div>
+        </div>
       </div>
+      <style>{`
+        .auth-card {
+          width: 100%;
+          max-width: 960px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          overflow: hidden;
+          padding: 0;
+          margin: auto;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-xl);
+          box-shadow: var(--shadow-xl);
+        }
+        @media (max-width: 768px) {
+          .auth-card {
+            grid-template-columns: 1fr;
+            max-width: 440px;
+          }
+          .auth-sidebar {
+            display: none !important;
+          }
+          .auth-card > div:last-child {
+            padding: 32px 24px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

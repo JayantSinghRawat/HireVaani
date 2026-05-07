@@ -228,9 +228,9 @@ export default function UserDashboard() {
             <button style={{ background: 'transparent', border: 'none', color: '#6B7280', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer' }}>View all →</button>
           </div>
 
-          <div style={{ 
+          <div className="ud-grid" style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
             gap: 24 
           }}>
             {interviews.map((iv) => {
@@ -471,7 +471,7 @@ export default function UserDashboard() {
                 </div>
                 <div style={{ marginBottom: 24 }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, color: '#374151', marginBottom: 8 }}>Interview Language</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  <div className="lang-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                     {LANGUAGES.map(l => (
                       <button
                         key={l.value} type="button"
@@ -527,6 +527,8 @@ export default function UserDashboard() {
 
           /* Notification dropdown — full width on mobile */
           .ud-notif-dropdown { width: calc(100vw - 32px) !important; right: -60px !important; }
+          .lang-grid { grid-template-columns: 1fr !important; }
+          .ud-hero { margin-bottom: 32px !important; }
         }
       `}</style>
     </div>

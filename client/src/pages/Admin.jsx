@@ -27,9 +27,7 @@ export default function Admin() {
   let username = 'Admin';
   try {
     if (userStr) username = JSON.parse(userStr).name;
-  } catch (e) {
-    // ignore
-  }
+  } catch (e) { /* ignore */ }
 
   const [candidates, setCandidates] = useState([]);
   const [selected,   setSelected]   = useState(null);
@@ -66,7 +64,7 @@ export default function Admin() {
         navigate('/login'); 
       }
     } finally { setLoading(false); }
-  }, []); // eslint-disable-line
+  }, [navigate]); // eslint-disable-line
 
   useEffect(() => { fetchCandidates(); }, [fetchCandidates]);
 
@@ -84,7 +82,7 @@ export default function Admin() {
       setCandidates(cs => cs.map(c => c.sessionId === sessionId ? { ...c, ...data } : c));
       if (selected?.sessionId === sessionId) setSelected(s => ({ ...s, ...data }));
       showToast('Saved successfully');
-    } catch { showToast('Save failed — please try again'); }
+    } catch { showToast('Save failed'); }
     finally { setSaving(false); }
   };
 
@@ -101,21 +99,16 @@ export default function Admin() {
       await axios.post(`${API}/interviews`, payload, authH);
       showToast('Interview created successfully!');
       setShowAddInterview(false);
-    } catch (err) {
-      showToast('Failed to create interview');
-    } finally {
-      setCreatingInterview(false);
-    }
+    } catch { showToast('Failed to create interview'); }
+    finally { setCreatingInterview(false); }
   };
 
   const handleLogout = () => { 
-    localStorage.removeItem('hv_token'); 
-    localStorage.removeItem('hv_user'); 
-    navigate('/login'); 
+    localStorage.removeItem('hv_token'); localStorage.removeItem('hv_user'); navigate('/login'); 
   };
 
   const filtered = candidates.filter(c => {
-    if (filter.role     && c.role !== filter.role)               return false;
+    if (filter.role && c.role !== filter.role) return false;
     if (filter.decision && c.fitmentDecision !== filter.decision) return false;
     if (filter.search) {
       const q = filter.search.toLowerCase();
@@ -125,40 +118,26 @@ export default function Admin() {
   });
 
   const stats = {
-    total:       candidates.length,
+    total: candidates.length,
     shortlisted: candidates.filter(c => c.fitmentDecision === 'Shortlisted').length,
-    review:      candidates.filter(c => c.fitmentDecision === 'Under Review').length,
-    notFit:      candidates.filter(c => c.fitmentDecision === 'Not Fit').length,
-    avgScore:    candidates.length
-      ? (candidates.reduce((s,c) => s + (c.overallScore||0), 0) / candidates.length).toFixed(1)
-      : '—',
+    review: candidates.filter(c => c.fitmentDecision === 'Under Review').length,
+    notFit: candidates.filter(c => c.fitmentDecision === 'Not Fit').length,
+    avgScore: candidates.length ? (candidates.reduce((s,c) => s + (c.overallScore||0), 0) / candidates.length).toFixed(1) : '—',
   };
 
   return (
     <div style={{ minHeight: '100vh', paddingTop: 64, background: 'var(--bg-secondary)' }}>
       <nav className="navbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Link to="/" className="navbar-brand">HireVaani</Link>
-          <div style={{ width: 1, height: 16, background: 'var(--border)' }}></div>
-          <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-muted)', background: 'var(--bg-hover)', padding: '4px 10px', borderRadius: '6px' }}>Organizer Portal</span>
+          <div className="nav-sep"></div>
+          <span className="nav-tag">Organizer Portal</span>
         </div>
-
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ 
-              width: 32, height: 32, borderRadius: '50%', background: 'var(--brand-light)', color: 'var(--brand-primary)', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 600, border: '1px solid var(--border)' 
-            }}>
-              {username.charAt(0).toUpperCase()}
-            </div>
-            <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }} title="Sign Out">
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
-            </button>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--brand-light)', color: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 600, border: '1px solid var(--border)' }}>
+            {username.charAt(0).toUpperCase()}
           </div>
+          <button onClick={handleLogout} className="btn-logout" title="Sign Out">✕</button>
         </div>
       </nav>
 
@@ -169,207 +148,120 @@ export default function Admin() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 14, marginBottom: 24 }}>
+        <div className="stats-grid">
           {[
-            { label: 'Total',        value: stats.total,       color: 'var(--blue)' },
-            { label: 'Shortlisted',  value: stats.shortlisted, color: 'var(--emerald)' },
-            { label: 'Under Review', value: stats.review,      color: 'var(--amber)' },
-            { label: 'Not Fit',      value: stats.notFit,      color: 'var(--rose)' },
-            { label: 'Avg Score',    value: `${stats.avgScore}/10`, color: 'var(--purple)' },
+            { label: 'Total', value: stats.total, color: 'var(--blue)' },
+            { label: 'Shortlisted', value: stats.shortlisted, color: 'var(--emerald)' },
+            { label: 'Under Review', value: stats.review, color: 'var(--amber)' },
+            { label: 'Not Fit', value: stats.notFit, color: 'var(--rose)' },
+            { label: 'Avg Score', value: `${stats.avgScore}/10`, color: 'var(--purple)' },
           ].map(s => (
-            <div key={s.label} className="card" style={{ padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontFamily: 'var(--font-head)', fontSize: '1.6rem', fontWeight: 800, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 3 }}>{s.label}</div>
+            <div key={s.label} className="card stat-card">
+              <div className="stat-val" style={{ color: s.color }}>{s.value}</div>
+              <div className="stat-label">{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Filters */}
-        <div className="card" style={{ padding: '14px 18px', marginBottom: 18, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input
-            id="admin-search" className="input"
-            style={{ maxWidth: 220 }}
-            placeholder="Search by name or email..."
-            value={filter.search}
-            onChange={e => setFilter(f => ({ ...f, search: e.target.value }))}
-          />
-          <select id="filter-role" className="select" style={{ maxWidth: 180 }} value={filter.role} onChange={e => setFilter(f => ({ ...f, role: e.target.value }))}>
+        <div className="card filter-card">
+          <input className="input filter-input" placeholder="Search..." value={filter.search} onChange={e => setFilter(f => ({ ...f, search: e.target.value }))} />
+          <select className="select filter-select" value={filter.role} onChange={e => setFilter(f => ({ ...f, role: e.target.value }))}>
             <option value="">All Roles</option>
             {Object.entries(ROLE_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
           </select>
-          <select id="filter-decision" className="select" style={{ maxWidth: 180 }} value={filter.decision} onChange={e => setFilter(f => ({ ...f, decision: e.target.value }))}>
+          <select className="select filter-select" value={filter.decision} onChange={e => setFilter(f => ({ ...f, decision: e.target.value }))}>
             <option value="">All Decisions</option>
-            <option>Shortlisted</option>
-            <option>Under Review</option>
-            <option>Not Fit</option>
-            <option>Pending</option>
+            {['Shortlisted','Under Review','Not Fit','Pending'].map(d => <option key={d}>{d}</option>)}
           </select>
-          <span style={{ marginLeft: 'auto', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            {filtered.length} of {candidates.length} candidates
-          </span>
         </div>
 
-        <div className="admin-main-grid" style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: 20 }}>
-          {/* Table */}
-          <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
+        <div className="admin-grid" style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: 20 }}>
+          {/* Main List */}
+          <div className="card list-card" style={{ padding: 0, overflow: 'hidden' }}>
             {loading ? (
-              <div style={{ padding: 60, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                <div className="spinner" /><p>Loading candidates...</p>
-              </div>
+              <div className="loading-state"><div className="spinner" /><p>Loading...</p></div>
             ) : filtered.length === 0 ? (
-              <div style={{ padding: 60, textAlign: 'center' }}>
-                <h4 style={{ marginBottom: 8 }}>No candidates found</h4>
-                <p style={{ marginBottom: 20 }}>Complete an interview to see results here.</p>
-                <Link to="/" className="btn btn-primary btn-sm">Start Interview</Link>
-              </div>
+              <div className="empty-state"><h4>No candidates</h4><p>Waiting for submissions.</p></div>
             ) : (
-              <table className="table">
-                <thead>
-                  <tr>
-                    {['Candidate','Role','Language','Score','Trust','Decision','Action'].map(h => (
-                      <th key={h}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((c) => {
-                    const isActive = selected?.sessionId === c.sessionId;
-                    return (
-                      <tr key={c.sessionId}
-                        onClick={() => openCandidate(c)}
-                        style={{ cursor: 'pointer', background: isActive ? 'var(--blue-light)' : undefined }}
-                      >
-                        <td>
-                          <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.88rem' }}>{c.name}</div>
-                          <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{c.email || '—'}</div>
-                        </td>
+              <div className="table-responsive">
+                <table className="table">
+                  <thead><tr>{['Candidate','Role','Score','Trust','Decision','Action'].map(h => <th key={h}>{h}</th>)}</tr></thead>
+                  <tbody>
+                    {filtered.map((c) => (
+                      <tr key={c.sessionId} onClick={() => openCandidate(c)} className={selected?.sessionId === c.sessionId ? 'active-row' : ''}>
+                        <td><div className="cand-name">{c.name}</div><div className="cand-email">{c.email}</div></td>
                         <td>{ROLE_LABELS[c.role] || c.role}</td>
-                        <td style={{ textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 600 }}>{c.language}</td>
-                        <td>
-                          <span style={{ fontWeight: 700, fontFamily: 'var(--font-head)', color: (c.overallScore||0)>=7?'var(--emerald)':(c.overallScore||0)>=5?'var(--amber)':'var(--rose)' }}>
-                            {c.overallScore || '—'}
-                          </span>
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>/10</span>
-                        </td>
-                        <td style={{ fontWeight: 600, color: (c.trustScore||0)>=70?'var(--emerald)':(c.trustScore||0)>=40?'var(--amber)':'var(--rose)' }}>
-                          {c.trustScore ?? '—'}%
-                        </td>
+                        <td><span className="cand-score" style={{ color: (c.overallScore||0)>=7?'var(--emerald)':(c.overallScore||0)>=5?'var(--amber)':'var(--rose)' }}>{c.overallScore||'—'}</span>/10</td>
+                        <td>{c.trustScore ?? '—'}%</td>
                         <td><span className={`badge ${DECISION_BADGE[c.fitmentDecision] || 'badge-gray'}`}>{c.fitmentDecision || 'Pending'}</span></td>
                         <td onClick={e => e.stopPropagation()}>
-                          <select
-                            className="select"
-                            style={{ padding: '5px 8px', fontSize: '0.78rem', width: 'auto', minWidth: 130 }}
-                            value={c.fitmentDecision || 'Pending'}
-                            onChange={e => updateCandidate(c.sessionId, { fitmentDecision: e.target.value })}
-                          >
-                            <option>Shortlisted</option>
-                            <option>Under Review</option>
-                            <option>Not Fit</option>
-                            <option>Pending</option>
+                          <select className="select select-sm" value={c.fitmentDecision || 'Pending'} onChange={e => updateCandidate(c.sessionId, { fitmentDecision: e.target.value })}>
+                            {['Shortlisted','Under Review','Not Fit','Pending'].map(d => <option key={d}>{d}</option>)}
                           </select>
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          {/* Detail panel */}
-          {selected && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div className="card" style={{ padding: '22px 20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-                  <div>
-                    <h4 style={{ marginBottom: 2 }}>{selected.name}</h4>
-                    <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{selected.email || 'No email'}</span>
-                  </div>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}>Close</button>
-                </div>
-
-                {/* Score grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 18 }}>
-                  {[
-                    ['Overall Score', `${selected.overallScore}/10`],
-                    ['Trust Score',   `${selected.trustScore}%`],
-                    ['Role',          ROLE_LABELS[selected.role] || selected.role],
-                    ['Language',      selected.language?.toUpperCase()],
-                  ].map(([l,v]) => (
-                    <div key={l} style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{l}</div>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{v}</div>
+                    ))}
+                  </tbody>
+                </table>
+                {/* Mobile Card List */}
+                <div className="mobile-list">
+                  {filtered.map(c => (
+                    <div key={c.sessionId} className="mobile-cand-card" onClick={() => openCandidate(c)}>
+                      <div className="m-header">
+                        <div className="m-name">{c.name}</div>
+                        <span className={`badge ${DECISION_BADGE[c.fitmentDecision] || 'badge-gray'}`}>{c.fitmentDecision}</span>
+                      </div>
+                      <div className="m-meta">{ROLE_LABELS[c.role] || c.role} · {c.language?.toUpperCase()}</div>
+                      <div className="m-stats">
+                        <span>Score: <b>{c.overallScore}/10</b></span>
+                        <span>Trust: <b>{c.trustScore}%</b></span>
+                      </div>
                     </div>
                   ))}
                 </div>
-
-                {/* Skill bars */}
-                {selected.skillScores && (
-                  <div style={{ marginBottom: 18 }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: 10 }}>Skill Breakdown</div>
-                    {SKILL_KEYS.map(k => (
-                      <div key={k} style={{ marginBottom: 8 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontSize: '0.8rem' }}>
-                          <span style={{ color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{k}</span>
-                          <span style={{ fontWeight: 600 }}>{selected.skillScores[k]}/10</span>
-                        </div>
-                        <div className="progress-bar" style={{ height: 4 }}>
-                          <div className="progress-fill" style={{ width: `${(selected.skillScores[k]||0)*10}%` }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {selected.fitmentReason && (
-                  <div className="alert alert-info" style={{ marginBottom: 16, fontSize: '0.82rem', lineHeight: 1.6 }}>
-                    <strong>AI Reasoning:</strong> {selected.fitmentReason}
-                  </div>
-                )}
-
-                <div style={{ marginBottom: 14 }}>
-                  <label className="label">Admin Notes</label>
-                  <textarea className="textarea" rows={3} style={{ fontSize: '0.85rem' }}
-                    placeholder="Add notes about this candidate..."
-                    value={editNotes} onChange={e => setEditNotes(e.target.value)} />
-                </div>
-
-                <button id="save-notes-btn" className="btn btn-primary" style={{ width: '100%' }} disabled={saving}
-                  onClick={() => updateCandidate(selected.sessionId, { adminNotes: editNotes })}>
-                  {saving ? <><span className="spinner" style={{ width:14,height:14,borderWidth:2,borderColor:'rgba(255,255,255,0.3)',borderTopColor:'#fff' }} /> Saving...</> : 'Save Notes'}
-                </button>
               </div>
+            )}
+          </div>
 
-              {/* Answers */}
-              {selected.answers?.length > 0 && (
-                <div className="card" style={{ padding: '18px 20px' }}>
-                  <h4 style={{ marginBottom: 14, fontSize: '0.9rem' }}>Interview Answers</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 380, overflowY: 'auto' }}>
-                    {selected.answers.map((a, i) => (
-                      <div key={i} style={{ padding: '11px 13px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
-                        <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBottom: 5 }}>Q{i+1}: {a.questionText}</div>
-                        <div style={{ fontSize: '0.83rem', color: 'var(--text-secondary)', marginBottom: 8, borderLeft: '3px solid var(--blue)', paddingLeft: 10 }}>
-                          {a.transcript || 'No transcript'}
-                        </div>
-                        {a.geminiScores && (
-                          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
-                            {a.geminiScores.isCorrect !== undefined && (
-                              <span className={`badge ${a.geminiScores.isCorrect ? 'badge-emerald' : 'badge-rose'}`} style={{ fontSize: '0.68rem', padding: '2px 7px', marginRight: '6px' }}>
-                                {a.geminiScores.isCorrect ? '✓ CORRECT' : '✗ INCORRECT'}
-                              </span>
-                            )}
-                            {Object.entries(a.geminiScores).filter(([k]) => k !== 'feedback' && k !== 'isCorrect').map(([k,v]) => (
-                              <span key={k} className="badge badge-blue" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
-                                {k[0].toUpperCase()}: {v}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+          {/* Sidebar */}
+          {selected && (
+            <div className="detail-sidebar card">
+              <div className="s-header">
+                <div><h4>{selected.name}</h4><span className="s-email">{selected.email}</span></div>
+                <button className="btn-close" onClick={() => setSelected(null)}>✕</button>
+              </div>
+              <div className="s-stats">
+                {[ ['Score', `${selected.overallScore}/10`], ['Trust', `${selected.trustScore}%`], ['Role', ROLE_LABELS[selected.role] || selected.role], ['Lang', selected.language?.toUpperCase()] ].map(([l,v]) => (
+                  <div key={l} className="s-stat-box"><span>{l}</span><b>{v}</b></div>
+                ))}
+              </div>
+              {selected.skillScores && (
+                <div className="s-skills">
+                  {SKILL_KEYS.map(k => (
+                    <div key={k} className="s-skill-row">
+                      <div className="s-skill-label"><span>{k}</span><b>{selected.skillScores[k]}/10</b></div>
+                      <div className="progress-bar"><div className="progress-fill" style={{ width: `${(selected.skillScores[k]||0)*10}%` }} /></div>
+                    </div>
+                  ))}
                 </div>
               )}
+              {selected.fitmentReason && <div className="s-reason"><strong>AI:</strong> {selected.fitmentReason}</div>}
+              <div className="s-notes">
+                <label>Admin Notes</label>
+                <textarea className="textarea" rows={3} value={editNotes} onChange={e => setEditNotes(e.target.value)} />
+                <button className="btn btn-primary" style={{ width: '100%', marginTop: 12 }} disabled={saving} onClick={() => updateCandidate(selected.sessionId, { adminNotes: editNotes })}>
+                  {saving ? 'Saving...' : 'Save Notes'}
+                </button>
+              </div>
+              <div className="s-answers">
+                {selected.answers?.map((a, i) => (
+                  <div key={i} className="s-ans-box">
+                    <div className="s-q">Q{i+1}: {a.questionText}</div>
+                    <div className="s-tx">{a.transcript}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -377,80 +269,55 @@ export default function Admin() {
 
       {toast && <div className="toast">{toast}</div>}
 
-      {/* Add Interview Modal */}
-      {showAddInterview && (
-        <div style={{ 
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
-          background: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24
-        }} onClick={() => setShowAddInterview(false)}>
-          <div style={{ 
-            background: 'var(--bg-primary)', width: '100%', maxWidth: 600, borderRadius: '16px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', overflow: 'hidden',
-            maxHeight: '90vh', display: 'flex', flexDirection: 'column'
-          }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>Create New Interview</h3>
-              <button onClick={() => setShowAddInterview(false)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }}>✕</button>
-            </div>
-            
-            <div style={{ padding: '24px 32px', overflowY: 'auto' }}>
-              <form id="add-interview-form" onSubmit={handleCreateInterview}>
-                <div style={{ marginBottom: 16 }}>
-                  <label className="label">Company Name</label>
-                  <input className="input" required value={newInterview.companyName} onChange={e => setNewInterview({...newInterview, companyName: e.target.value})} placeholder="e.g. TechCorp India" />
-                </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
-                  <div>
-                    <label className="label">Role Applying For</label>
-                    <select className="select" required value={newInterview.role} onChange={e => setNewInterview({...newInterview, role: e.target.value})}>
-                      {Object.entries(ROLE_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="label">Date & Time</label>
-                    <input type="datetime-local" className="input" required value={newInterview.date} onChange={e => setNewInterview({...newInterview, date: e.target.value})} />
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: 16 }}>
-                  <label className="label">Job Description</label>
-                  <textarea className="textarea" rows={2} required value={newInterview.description} onChange={e => setNewInterview({...newInterview, description: e.target.value})} placeholder="Briefly describe the role..." />
-                </div>
-
-                <div style={{ marginBottom: 16 }}>
-                  <label className="label">Required Skills (comma separated)</label>
-                  <input className="input" required value={newInterview.requiredSkills} onChange={e => setNewInterview({...newInterview, requiredSkills: e.target.value})} placeholder="e.g. React, Node.js, SQL" />
-                </div>
-
-                <div style={{ marginBottom: 16 }}>
-                  <label className="label">Instructions for Candidate</label>
-                  <textarea className="textarea" rows={2} required value={newInterview.instructions} onChange={e => setNewInterview({...newInterview, instructions: e.target.value})} placeholder="e.g. Ensure you have a stable internet connection..." />
-                </div>
-
-                <div style={{ marginBottom: 16 }}>
-                  <label className="label">Custom Questions (One per line)</label>
-                  <textarea className="textarea" rows={4} value={newInterview.customQuestions} onChange={e => setNewInterview({...newInterview, customQuestions: e.target.value})} placeholder="Enter custom questions you'd like the AI to ask, one per line..." />
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>These questions will be prioritized by the AI interviewer.</div>
-                </div>
-              </form>
-            </div>
-            
-            <div style={{ padding: '20px 32px', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-              <button onClick={() => setShowAddInterview(false)} className="btn btn-ghost">Cancel</button>
-              <button form="add-interview-form" type="submit" className="btn btn-primary" disabled={creatingInterview}>
-                {creatingInterview ? 'Creating...' : 'Create Interview'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       <style>{`
+        .nav-sep { width: 1; height: 16px; background: var(--border); margin: 0 8px; }
+        .nav-tag { font-size: 0.85rem; color: var(--text-muted); background: var(--bg-hover); padding: 4px 10px; border-radius: 6px; }
+        .btn-logout { background: transparent; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { padding: 20px; text-align: center; }
+        .stat-val { font-size: 1.8rem; font-weight: 800; font-family: var(--font-head); }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .filter-card { padding: 16px; margin-bottom: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .filter-input { max-width: 240px; }
+        .filter-select { max-width: 180px; }
+        .loading-state, .empty-state { padding: 80px 20px; text-align: center; }
+        .table-responsive { width: 100%; }
+        .active-row { background: var(--brand-light) !important; }
+        .cand-name { fontWeight: 600; color: var(--text-primary); font-size: 0.9rem; }
+        .cand-email { color: var(--text-muted); font-size: 0.75rem; }
+        .cand-score { fontWeight: 700; font-family: var(--font-head); }
+        .mobile-list { display: none; }
+        
+        /* SIDEBAR */
+        .detail-sidebar { padding: 24px; display: flex; flexDirection: column; gap: 20px; }
+        .s-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .s-email { font-size: 0.8rem; color: var(--text-muted); }
+        .btn-close { background: transparent; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted); }
+        .s-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .s-stat-box { background: var(--bg-secondary); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; }
+        .s-stat-box span { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
+        .s-stat-box b { font-size: 0.9rem; }
+        .s-skill-row { margin-bottom: 12px; }
+        .s-skill-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
+        .s-reason { font-size: 0.85rem; padding: 12px; background: #EEF2FF; border-radius: 8px; color: #312E81; border: 1px solid #C7D2FE; }
+        .s-ans-box { padding: 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 10px; }
+        .s-q { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+        .s-tx { font-size: 0.85rem; color: var(--text-primary); border-left: 2px solid var(--blue); padding-left: 8px; }
+
         @media (max-width: 768px) {
-          .admin-main-grid { grid-template-columns: 1fr !important; }
-          .admin-navbar-actions { gap: 8px !important; }
-          .admin-navbar-actions .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+          .nav-sep, .nav-tag { display: none; }
+          .stats-grid { grid-template-columns: 1fr 1fr; }
+          .filter-card { flex-direction: column; }
+          .filter-input, .filter-select { max-width: none; width: 100%; }
+          .admin-grid { grid-template-columns: 1fr !important; }
+          .table { display: none; }
+          .mobile-list { display: flex; flex-direction: column; }
+          .mobile-cand-card { padding: 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
+          .m-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+          .m-name { font-weight: 600; font-size: 1rem; }
+          .m-meta { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
+          .m-stats { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-secondary); }
+          .detail-sidebar { position: fixed; inset: 0; z-index: 1000; border-radius: 0; overflow-y: auto; }
         }
       `}</style>
     </div>

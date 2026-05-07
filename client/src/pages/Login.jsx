@@ -33,10 +33,10 @@ export default function Login() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyItems: 'center', background: 'var(--bg-secondary)', padding: '24px' }}>
       
-    <div className="card fade-in login-card" style={{ width: '100%', maxWidth: 900, display: 'grid', gridTemplateColumns: '1fr 1fr', overflow: 'hidden', padding: 0, margin: 'auto' }}>
+    <div className="auth-card fade-in">
         
         {/* Left panel */}
-        <div className="login-left-panel" style={{ background: 'var(--bg-card)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 48px', borderRight: '1px solid var(--border)' }}>
+        <div className="auth-sidebar" style={{ background: 'var(--bg-card)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 48px', borderRight: '1px solid var(--border)' }}>
           <div className="fade-in-1">
             <div style={{ marginBottom: 40, display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 36, height: 36, borderRadius: '8px', background: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -52,7 +52,7 @@ export default function Login() {
         </div>
 
         {/* Right panel — login form */}
-        <div className="login-right-panel" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px', background: 'var(--bg-secondary)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px', background: 'var(--bg-secondary)' }}>
           <div style={{ width: '100%', maxWidth: 340 }}>
             <div className="fade-in-2" style={{ marginBottom: 32 }}>
               <h2 style={{ marginBottom: 8, fontSize: '1.5rem', color: 'var(--brand-primary)' }}>Sign In</h2>
@@ -105,10 +105,30 @@ export default function Login() {
         </div>
       </div>
       <style>{`
-        @media (max-width: 640px) {
-          .login-left-panel { display: none !important; }
-          .login-card { grid-template-columns: 1fr !important; }
-          .login-right-panel { padding: 32px 24px !important; }
+        .auth-card {
+          width: 100%;
+          max-width: 900px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          overflow: hidden;
+          padding: 0;
+          margin: auto;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-xl);
+          box-shadow: var(--shadow-xl);
+        }
+        @media (max-width: 768px) {
+          .auth-card {
+            grid-template-columns: 1fr;
+            max-width: 440px;
+          }
+          .auth-sidebar {
+            display: none !important;
+          }
+          .auth-card > div:last-child {
+            padding: 32px 24px !important;
+          }
         }
       `}</style>
     </div>
