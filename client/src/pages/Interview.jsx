@@ -82,7 +82,6 @@ export default function Interview() {
 
     const setup = async () => {
       try {
-        // More robust camera access
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { facingMode: 'user' }, 
           audio: true 
@@ -91,14 +90,15 @@ export default function Interview() {
         streamRef.current = stream;
         if (videoRef.current) { 
           videoRef.current.srcObject = stream;
-          // Ensure video plays
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current.play().catch(e => console.error("Video play failed:", e));
-          };
+          // Simple play call
+          try {
+            await videoRef.current.play();
+          } catch (e) {
+            console.warn("Video play error:", e);
+          }
         }
 
         try {
-          // Dynamic import for MediaPipe
           const { FaceDetector, FilesetResolver } = await import('@mediapipe/tasks-vision');
           const vision = await FilesetResolver.forVisionTasks(
             'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm'
@@ -165,7 +165,6 @@ export default function Interview() {
                     setFaceStatus('Face verified');
                   }
                 } catch (err) {
-                  // If detection fails, don't crash the loop
                   console.error("Detection error:", err);
                 }
               }
@@ -187,10 +186,19 @@ export default function Interview() {
     setup();
     return () => {
       cancelAnimationFrame(animId);
-      streamRef.current?.getTracks().forEach(t => t.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
       detector?.close?.();
     };
   }, [terminateInterview]);
+
+  // Keep video stream attached during re-renders
+  useEffect(() => {
+    if (streamRef.current && videoRef.current && videoRef.current.srcObject !== streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  });
 
   const processAudio = useCallback(async () => {
     const mimeType = chunksRef.current[0]?.type || 'audio/webm';
@@ -434,12 +442,12 @@ export default function Interview() {
           {/* Right sidebar */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Camera */}
-            <div className="card" style={{ overflow: 'hidden' }}>
+            <div className="card" style={{ overflow: 'hidden', background: '#f3f4f6' }}>
               <video
                 ref={videoRef} autoPlay muted playsInline
-                style={{ width: '100%', display: 'block', maxHeight: 220, objectFit: 'cover', transform: 'scaleX(-1)', background: '#000' }}
+                style={{ width: '100%', display: 'block', minHeight: 180, maxHeight: 240, objectFit: 'contain', transform: 'scaleX(-1)' }}
               />
-              <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem' }}>
+              <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', background: '#fff', borderTop: '1px solid var(--border)' }}>
                 <span className={`dot dot-${faceStatus === 'Face verified' ? 'green' : 'amber'}`} />
                 <span style={{ color: 'var(--text-secondary)' }}>{faceStatus}</span>
               </div>
