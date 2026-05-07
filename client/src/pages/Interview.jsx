@@ -82,73 +82,91 @@ export default function Interview() {
 
     const setup = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        // More robust camera access
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'user' }, 
+          audio: true 
+        });
+        
         streamRef.current = stream;
         if (videoRef.current) { 
-          videoRef.current.srcObject = stream; 
-          await videoRef.current.play(); 
+          videoRef.current.srcObject = stream;
+          // Ensure video plays
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current.play().catch(e => console.error("Video play failed:", e));
+          };
         }
 
         try {
+          // Dynamic import for MediaPipe
           const { FaceDetector, FilesetResolver } = await import('@mediapipe/tasks-vision');
           const vision = await FilesetResolver.forVisionTasks(
             'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm'
           );
           detector = await FaceDetector.createFromOptions(vision, {
-            baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite', delegate: 'GPU' },
-            runningMode: 'VIDEO', minDetectionConfidence: 0.4,
+            baseOptions: { 
+              modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite', 
+              delegate: 'GPU' 
+            },
+            runningMode: 'VIDEO', 
+            minDetectionConfidence: 0.4,
           });
 
           let lastMs = -1;
           let lastPenaltyMs = -1;
           
           const loop = () => {
-            if (videoRef.current?.readyState === 4) {
+            if (videoRef.current && videoRef.current.readyState === 4) {
               const now = performance.now();
               if (now - lastMs >= 150) { 
                 lastMs = now;
-                const r = detector.detectForVideo(videoRef.current, now);
-                const count = r.detections.length;
-                
-                if (count === 0) {
-                  if (!lookAwayRef.current) lookAwayRef.current = now;
-                  const awayDuration = now - lookAwayRef.current;
+                try {
+                  const r = detector.detectForVideo(videoRef.current, now);
+                  const count = r.detections.length;
                   
-                  if (awayDuration > 500) {
-                    setFaceStatus('Face not detected');
-                  }
-                  
-                  if (awayDuration > LOOK_AWAY_THRESHOLD && now - lastPenaltyMs > 1500) {
-                    lastPenaltyMs = now;
-                    alertsRef.current++; 
-                    setFaceAlerts(alertsRef.current);
-                    const penalty = alertsRef.current <= 3 ? 5 : 10;
-                    trustRef.current = Math.max(0, trustRef.current - penalty);
-                    setTrustScore(trustRef.current);
-                    showWarning('Look at the camera! Trust score reduced.');
-
-                    if (trustRef.current <= 0 && phaseRef.current !== 'terminated') {
-                      terminateInterview('Interview terminated: Trust score reached 0 due to repeated face detection failures. You must stay in frame during the interview.');
-                    }
-                  }
-                } else if (count > 1) {
-                  lookAwayRef.current = null;
-                  setFaceStatus('Multiple faces detected');
-                  if (now - lastPenaltyMs > 1500) { 
-                    lastPenaltyMs = now;
-                    alertsRef.current++; 
-                    setFaceAlerts(alertsRef.current);
-                    trustRef.current = Math.max(0, trustRef.current - 8);
-                    setTrustScore(trustRef.current);
-                    showWarning('Only you should be in the frame!');
+                  if (count === 0) {
+                    if (!lookAwayRef.current) lookAwayRef.current = now;
+                    const awayDuration = now - lookAwayRef.current;
                     
-                    if (trustRef.current <= 0 && phaseRef.current !== 'terminated') {
-                      terminateInterview('Interview terminated: Multiple faces detected repeatedly. Integrity violation.');
+                    if (awayDuration > 500) {
+                      setFaceStatus('Face not detected');
                     }
+                    
+                    if (awayDuration > LOOK_AWAY_THRESHOLD && now - lastPenaltyMs > 1500) {
+                      lastPenaltyMs = now;
+                      alertsRef.current++; 
+                      setFaceAlerts(alertsRef.current);
+                      const penalty = alertsRef.current <= 3 ? 5 : 10;
+                      trustRef.current = Math.max(0, trustRef.current - penalty);
+                      setTrustScore(trustRef.current);
+                      showWarning('Look at the camera! Trust score reduced.');
+
+                      if (trustRef.current <= 0 && phaseRef.current !== 'terminated') {
+                        terminateInterview('Interview terminated: Trust score reached 0 due to repeated face detection failures. You must stay in frame during the interview.');
+                      }
+                    }
+                  } else if (count > 1) {
+                    lookAwayRef.current = null;
+                    setFaceStatus('Multiple faces detected');
+                    if (now - lastPenaltyMs > 1500) { 
+                      lastPenaltyMs = now;
+                      alertsRef.current++; 
+                      setFaceAlerts(alertsRef.current);
+                      trustRef.current = Math.max(0, trustRef.current - 8);
+                      setTrustScore(trustRef.current);
+                      showWarning('Only you should be in the frame!');
+                      
+                      if (trustRef.current <= 0 && phaseRef.current !== 'terminated') {
+                        terminateInterview('Interview terminated: Multiple faces detected repeatedly. Integrity violation.');
+                      }
+                    }
+                  } else {
+                    lookAwayRef.current = null;
+                    setFaceStatus('Face verified');
                   }
-                } else {
-                  lookAwayRef.current = null;
-                  setFaceStatus('Face verified');
+                } catch (err) {
+                  // If detection fails, don't crash the loop
+                  console.error("Detection error:", err);
                 }
               }
             }
@@ -156,10 +174,12 @@ export default function Interview() {
           };
           loop();
           setFaceStatus('Face verified');
-        } catch {
+        } catch (err) {
+          console.warn("Face detection init failed:", err);
           setFaceStatus('Camera active');
         }
-      } catch {
+      } catch (err) {
+        console.error("Camera access failed:", err);
         setError('Camera or microphone access was denied. Please allow permissions and reload.');
       }
     };
@@ -330,14 +350,14 @@ export default function Interview() {
               <div className="card" style={{ padding: '28px 28px', marginBottom: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
                   <div style={{ flex: 1 }}>
-                    <span className="badge badge-purple" style={{ marginBottom: 12, display: 'inline-block' }}>
+                    <span className="badge badge-blue" style={{ marginBottom: 12, display: 'inline-block' }}>
                       Question {qIndex + 1}
                     </span>
                     <h3 style={{ lineHeight: 1.6, fontWeight: 600 }}>{questions[qIndex]}</h3>
                   </div>
                   {phase === 'recording' && (
                     <div style={{ textAlign: 'center', flexShrink: 0, padding: '8px 16px', borderRadius: 'var(--radius-md)', background: timeLeft <= 10 ? 'var(--rose-light)' : 'var(--blue-light)', border: `1px solid ${timeLeft <= 10 ? '#fecdd3' : 'var(--blue-mid)'}` }}>
-                      <div style={{ fontFamily: 'var(--font-head)', fontSize: '1.5rem', fontWeight: 800, color: timeLeft <= 10 ? 'var(--rose)' : 'var(--blue)' }}>{timeLeft}s</div>
+                      <div style={{ fontFamily: 'var(--font-head)', fontSize: '1.5rem', fontWeight: 800, color: timeLeft <= 10 ? 'var(--rose)' : 'var(--brand-primary)' }}>{timeLeft}s</div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>remaining</div>
                     </div>
                   )}
@@ -352,7 +372,7 @@ export default function Interview() {
 
                 {phase === 'countdown' && (
                   <div style={{ marginTop: 24, textAlign: 'center', padding: '16px 0' }}>
-                    <div style={{ fontFamily: 'var(--font-head)', fontSize: '3.5rem', fontWeight: 800, color: 'var(--blue)' }}>{countdown}</div>
+                    <div style={{ fontFamily: 'var(--font-head)', fontSize: '3.5rem', fontWeight: 800, color: 'var(--brand-primary)' }}>{countdown}</div>
                     <p style={{ marginTop: 8 }}>Get ready to speak...</p>
                   </div>
                 )}
