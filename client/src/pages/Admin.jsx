@@ -390,6 +390,10 @@ export default function Admin() {
             <h2 style={{ marginBottom: 24, fontSize: '1.5rem', fontWeight: 800 }}>Create Interview</h2>
             <form onSubmit={handleCreateInterview}>
               <div className="form-group" style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 8, color: '#6B7280', textTransform: 'uppercase' }}>Company Name</label>
+                <input className="input" placeholder="e.g. Acme Corp" value={newIv.companyName} onChange={e => setNewIv({ ...newIv, companyName: e.target.value })} required />
+              </div>
+              <div className="form-group" style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 8, color: '#6B7280', textTransform: 'uppercase' }}>Interview Role</label>
                 <input className="input" placeholder="e.g. Senior Teacher" value={newIv.role} onChange={e => setNewIv({ ...newIv, role: e.target.value })} required />
               </div>
