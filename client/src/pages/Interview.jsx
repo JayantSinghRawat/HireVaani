@@ -306,7 +306,7 @@ export default function Interview() {
 
       <nav className="navbar">
         <span className="navbar-brand">HireVaani</span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div className="interview-nav-badges" style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           <span className="badge badge-blue">{ROLE_LABELS[role]}</span>
           <span className="badge badge-gray">{LANG_LABELS[language]}</span>
           <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 4 }}>{name}</span>
@@ -323,7 +323,7 @@ export default function Interview() {
           <div className="progress-bar"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20 }}>
+        <div className="interview-grid">
           {/* Main panel */}
           <div>
             {phase !== 'submitting' && (
@@ -450,6 +450,22 @@ export default function Interview() {
           </div>
         </div>
       </div>
+      <style>{`
+        .interview-grid {
+          display: grid;
+          grid-template-columns: 1fr 320px;
+          gap: 20px;
+        }
+        @media (max-width: 768px) {
+          .interview-grid {
+            display: flex;
+            flex-direction: column-reverse;
+          }
+          .interview-nav-badges {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
