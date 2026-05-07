@@ -32,38 +32,36 @@ const questionCache = new Map();
 // GET /api/questions?role=software_engineer&language=hi&sessionId=abc123
 router.get('/', async (req, res) => {
   const { role, language, sessionId } = req.query;
-  const roleContext = ROLE_CONTEXT[role];
-  if (!roleContext) return res.status(404).json({ error: `Role "${role}" not found` });
+  
+  // Use context from map if exists, else use the raw role string (allows custom roles like "Teacher")
+  const roleContext = ROLE_CONTEXT[role] || role; 
+  
+  if (!roleContext) return res.status(400).json({ error: 'Role is required' });
   if (!LANG_INSTRUCTION[language]) return res.status(404).json({ error: `Language "${language}" not supported` });
 
-  // Use sessionId to ensure uniqueness per candidate
   const cacheKey = `${role}_${language}_${sessionId || Date.now()}`;
   if (sessionId && questionCache.has(cacheKey)) {
     return res.json({ role, language, questions: questionCache.get(cacheKey) });
   }
 
   try {
-    const model = getClient().getGenerativeModel({ model: 'gemini-2.0-flash' }); // Upgraded to 2.0
-    
-    // Add a random seed to force variety
+    const model = getClient().getGenerativeModel({ model: 'gemini-2.0-flash' });
     const seed = Math.floor(Math.random() * 1000000);
     
-    const prompt = `You are a senior hiring manager conducting a real interview for the position of ${roleContext}. 
-Seed ID: ${seed} (Use this to ensure your choice of questions is unique and different from previous responses).
+    const prompt = `You are a senior hiring manager conducting a real interview for the position of "${roleContext}". 
+Seed ID: ${seed}
 
 Generate exactly 6 UNIQUE, CHALLENGING interview questions for this candidate.
 
 STRICT REQUIREMENTS:
 1. Each question must be different in type — mix of: behavioural, technical depth, real-world scenario, situational judgment, and problem-solving.
-2. NO generic or basic questions. Do NOT ask "Tell me about yourself", "Why should we hire you", or "What are your strengths".
-3. At least 2 questions must describe a realistic, specific workplace scenario (e.g., "Your production server goes down at 2 AM...", "A client is demanding a feature that isn't in the roadmap...").
-4. Questions must test DEEP expertise — focus on edge cases, difficult trade-offs, and advanced principles.
+2. NO generic or basic questions.
+3. At least 2 questions must describe a realistic, specific workplace scenario related to being a ${roleContext}.
+4. Questions must test DEEP expertise — focus on edge cases, difficult trade-offs, and advanced principles of ${roleContext}.
 5. Write all questions ${LANG_INSTRUCTION[language]}. THE ENTIRE QUESTION MUST BE IN THE TARGET LANGUAGE. NO MIXING.
-6. Questions must be specific to the role: ${roleContext}.
-7. Ensure variety. If you asked about React last time, ask about System Design or Performance Optimization this time.
+6. Ensure variety.
 
-Respond ONLY with a valid JSON array of 6 strings (the questions). No explanation, no markdown, no numbering.
-Example: ["Question 1 text", "Question 2 text", ...]`;
+Respond ONLY with a valid JSON array of 6 strings (the questions). No explanation, no markdown.`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
@@ -74,17 +72,15 @@ Example: ["Question 1 text", "Question 2 text", ...]`;
       throw new Error('Gemini returned invalid question array');
     }
 
-    // Shuffle and pick 5 to add further uniqueness
     const shuffled = questions.sort(() => Math.random() - 0.5).slice(0, 5);
     if (sessionId) questionCache.set(cacheKey, shuffled);
 
     return res.json({ role, language, questions: shuffled });
   } catch (err) {
-    console.error('[questions] Gemini failed, using fallback:', err.message);
+    console.error('[questions] Gemini failed:', err.message);
     const staticQuestions = require('../data/questions');
-    const qs = staticQuestions[role]?.[language];
-    if (qs) return res.json({ role, language, questions: qs });
-    return res.status(500).json({ error: 'Failed to generate questions' });
+    const qs = staticQuestions[role]?.[language] || staticQuestions['software_engineer'][language];
+    return res.json({ role, language, questions: qs });
   }
 });
 

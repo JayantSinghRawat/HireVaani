@@ -58,4 +58,19 @@ router.get('/', async (req, res) => {
   }
 });
 
+// DELETE /api/interviews/:id - Delete an interview (Organizer only)
+router.delete('/:id', auth, async (req, res) => {
+  if (req.user?.role !== 'organizer') return res.status(403).json({ error: 'Forbidden' });
+  try {
+    if (isMongoConnected()) {
+      await Interview.findByIdAndDelete(req.params.id);
+    } else {
+      memInterviews.delete(req.params.id);
+    }
+    res.json({ message: 'Interview deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
