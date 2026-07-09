@@ -1,8 +1,6 @@
 # HireVaani — AI-Led Multilingual Assessment Platform
 
-> **AI for Bharat · Theme 5: AI SkillFit**  
-> **Team Name:** HireVaani  
-> A scalable, AI-driven candidate screening prototype designed for the Indian workforce. Supporting **Kannada-first** multilingual interactions, reliable skill classification, and real-time proctoring.
+HireVaani is a scalable, AI-driven candidate screening platform designed for the Indian workforce, supporting **Kannada-first** multilingual interactions, reliable skill classification, and real-time proctoring.
 
 ---
 
@@ -136,12 +134,4 @@ The system tracks the candidate's presence in real-time:
 *   **Perfect Score (100%)**: Face detected throughout the session.
 *   **Deductions**: Automatically penalizes the score if the candidate looks away, leaves the frame, or if multiple faces are detected.
 
----
 
-## Team — HireVaani
-
-*   **Harshitha GG**
-*   **Ishita Gautam**
-*   **Jayant Singh Rawat**
-
-**Hackathon:** AI for Bharat · Theme 5: AI SkillFit
