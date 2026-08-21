@@ -135,3 +135,24 @@ The system tracks the candidate's presence in real-time:
 *   **Deductions**: Automatically penalizes the score if the candidate looks away, leaves the frame, or if multiple faces are detected.
 
 
+---
+
+## Development & Authorship
+
+This project is built using a combination of manual developer implementation and AI-assisted **Vibe Coding**:
+
+### Built Manually by the Developer (Jayant Singh Rawat):
+*   **EJS Templates, HTML, & CSS:** Built the interview and dashboard pages using EJS templates with HTML and CSS, pulling data from the backend and displaying it on the page to serve directly from the server.
+*   **REST API Endpoints:** Developed REST API endpoints in Node.js and Express.js to handle interview data — taking in requests, processing them, and sending back the response.
+*   **Database Integration:** Wrote backend code to fetch candidate data (transcripts, scores) from the database and show it on the admin dashboard, with the option to filter by role.
+*   **AI API Integrations:** Integrated the Sarvam AI and Google Gemini APIs into the backend, sending candidate responses to these APIs and handling the data they returned.
+*   **Client-Side Validation:** Added form validation so required fields like name and role selection are checked before the form is submitted to the server.
+*   **API Testing:** Used Postman to test the API endpoints for creating and fetching interview records, making sure data was correctly saved and read.
+*   **Version Control:** Used Git for version control, organizing commits by feature (pages, routes, dashboard) and pushing them to GitHub throughout development.
+
+### Built Using Vibe Coding (AI Collaboration on GitHub):
+*   **MediaPipe Proctoring:** The face-tracking and real-time gaze detection proctoring system using MediaPipe.
+*   **Initial React UI:** The initial frontend setup in React/Vite (which was later migrated to EJS).
+*   **Express Boilerplate & Configurations:** General project configurations, development scripts, and tooling integrations.
+
+

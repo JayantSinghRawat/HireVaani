@@ -1,0 +1,345 @@
+<%- include('partials/header') %>
+
+<div class="container" style="padding-top: 32px; padding-bottom: 60px;">
+  <!-- Header -->
+  <div class="fade-in" style="margin-bottom: 28px;">
+    <h2 style="margin-bottom: 4px;">Interview Complete</h2>
+    <p id="candidate-meta">Loading details...</p>
+  </div>
+
+  <div id="result-loading" class="spinner" style="margin: 40px auto;"></div>
+
+  <div id="result-content" style="display: none;">
+    <!-- Fitment banner -->
+    <div class="card fade-in fade-in-1 fitment-banner" id="fitment-banner" style="padding: 24px 28px; margin-bottom: 24px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+      <div style="flex: 1;">
+        <div style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px;" id="fitment-label">
+          AI Fitment Decision
+        </div>
+        <div style="font-family: var(--font-head); font-size: 1.75rem; font-weight: 800; margin-bottom: 8px;" id="fitment-decision">
+          Pending
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;" id="fitment-reason"></p>
+      </div>
+      <div style="text-align: center; flex-shrink: 0;">
+        <div style="font-family: var(--font-head); font-size: 2.5rem; font-weight: 800; line-height: 1;" id="overall-score">
+          0
+        </div>
+        <div style="font-size: 0.82rem; color: var(--text-muted); marginTop: 4px;">out of 10</div>
+      </div>
+    </div>
+
+    <!-- Charts grid -->
+    <div class="result-grid">
+      <!-- Radar -->
+      <div class="card fade-in fade-in-2" style="padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h4>Skill Assessment</h4>
+          <span class="badge badge-blue">Gemini AI</span>
+        </div>
+        <div style="max-width: 320px; margin: 0 auto;">
+          <canvas id="radarChart"></canvas>
+        </div>
+        <div style="margin-top: 18px; display: grid; grid-template-columns: repeat(2,1fr); gap: 7px;" id="skill-breakdown">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Trust + summary -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="card fade-in fade-in-2" style="padding: 24px; display: flex; align-items: center; gap: 20px;">
+          <div style="width: 100px; height: 100px; position: relative; flex-shrink: 0;">
+            <canvas id="donutChart"></canvas>
+            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+              <span style="font-family: var(--font-head); font-weight: 800; font-size: 1.1rem;" id="donut-percentage">0%</span>
+            </div>
+          </div>
+          <div>
+            <h4 style="margin-bottom: 6px;">Trust Score</h4>
+            <p style="font-size: 0.85rem; margin-bottom: 10px;">Based on face monitoring throughout the interview.</p>
+            <span class="badge" id="trust-badge">High Trust</span>
+          </div>
+        </div>
+
+        <div class="card fade-in fade-in-3" style="padding: 20px 22px; flex: 1;">
+          <h4 style="margin-bottom: 14px;">Summary</h4>
+          <div id="summary-details">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Answer review -->
+    <div class="card fade-in fade-in-4" style="padding: 24px 28px; margin-bottom: 24px;">
+      <h4 style="margin-bottom: 20px;">Answer Review</h4>
+      <div style="display: flex; flex-direction: column; gap: 16px;" id="answer-review-list">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="result-actions" style="display: flex; gap: 12px; margin-top: 24px;">
+    <a href="/dashboard" class="btn btn-primary btn-lg">Back to Dashboard</a>
+  </div>
+</div>
+
+<style>
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 768px) {
+    .result-grid {
+      grid-template-columns: 1fr;
+    }
+    .fitment-banner {
+      flex-direction: column !important;
+      text-align: center;
+      padding: 24px 20px !important;
+    }
+    .result-actions {
+      flex-direction: column;
+    }
+    .result-actions .btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  const ROLE_LABELS = {
+    software_engineer: 'Software Engineer', data_analyst: 'Data Analyst',
+    marketing_executive: 'Marketing Executive', hr_executive: 'HR Executive',
+    sales_executive: 'Sales Executive', customer_support: 'Customer Support',
+  };
+  const LANG_LABELS = { en: 'English', hi: 'Hindi', kn: 'Kannada' };
+
+  const DECISION_CONFIG = {
+    Shortlisted:    { badgeClass: 'badge-emerald', bg: '#F0FDF4', border: '#bbf7d0', color: '#166534', label: 'Shortlisted' },
+    'Under Review': { badgeClass: 'badge-amber',   bg: '#FEF3C7', border: '#fde68a', color: '#92400e', label: 'Under Review' },
+    'Not Fit':      { badgeClass: 'badge-rose',    bg: '#FEF2F2', border: '#fecaca', color: '#991b1b', label: 'Not Fit' },
+    Pending:        { badgeClass: 'badge-blue',    bg: '#EFF6FF', border: '#bfdbfe', color: '#1e40af', label: 'Pending' },
+  };
+
+  const SKILL_LABELS = ['Relevance', 'Clarity', 'Confidence', 'Technical', 'Communication'];
+
+  let token = '';
+
+  (async function init() {
+    token = localStorage.getItem('hv_token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      let result = null;
+
+      // 1. Try to load from SessionStorage first
+      const stored = sessionStorage.getItem('hv_result_data');
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionIdParam = urlParams.get('id');
+
+      if (stored && !sessionIdParam) {
+        result = JSON.parse(stored);
+        // Clear it so it doesn't linger
+        sessionStorage.removeItem('hv_result_data');
+      } else if (sessionIdParam) {
+        // 2. Fetch history and find the item with this sessionId
+        const headers = { 'Authorization': `Bearer ${token}` };
+        const res = await fetch('/api/candidates/history', { headers });
+        const history = await res.json();
+        result = history.find(h => h.sessionId === sessionIdParam);
+      }
+
+      if (!result) {
+        alert('Result not found or unauthorized.');
+        window.location.href = '/dashboard';
+        return;
+      }
+
+      renderResult(result);
+    } catch (e) {
+      console.error(e);
+      alert('Error loading result: ' + e.message);
+      window.location.href = '/dashboard';
+    }
+  })();
+
+  function renderResult(result) {
+    document.getElementById('result-loading').style.display = 'none';
+    document.getElementById('result-content').style.display = 'block';
+
+    const {
+      name = 'Candidate', role = 'software_engineer', language = 'en',
+      overallScore = 0, skillScores = {}, trustScore = 0,
+      fitmentDecision = 'Pending', fitmentReason = '',
+      answers = [],
+    } = result;
+
+    document.getElementById('candidate-meta').innerHTML = `${name} &middot; ${ROLE_LABELS[role] || role} &middot; ${LANG_LABELS[language] || language}`;
+
+    // Fitment Banner
+    const dc = DECISION_CONFIG[fitmentDecision] || DECISION_CONFIG.Pending;
+    const banner = document.getElementById('fitment-banner');
+    banner.style.background = dc.bg;
+    banner.style.border = `1.5px solid ${dc.border}`;
+    
+    const decisionEl = document.getElementById('fitment-decision');
+    decisionEl.innerText = fitmentDecision;
+    decisionEl.style.color = dc.color;
+
+    document.getElementById('fitment-label').style.color = dc.color;
+    document.getElementById('fitment-reason').innerText = fitmentReason || 'Awaiting final fitment review.';
+    
+    const scoreEl = document.getElementById('overall-score');
+    scoreEl.innerText = overallScore;
+    scoreEl.style.color = overallScore >= 7.5 ? '#166534' : overallScore >= 5 ? '#92400e' : '#991b1b';
+
+    // Skill breakdown list & Radar dataset
+    const skills = [
+      skillScores.relevance || 0,
+      skillScores.clarity || 0,
+      skillScores.confidence || 0,
+      skillScores.technical || 0,
+      skillScores.communication || 0
+    ];
+
+    document.getElementById('skill-breakdown').innerHTML = SKILL_LABELS.map((lbl, idx) => {
+      const score = skills[idx];
+      const color = score >= 7 ? '#166534' : score >= 5 ? '#92400e' : '#991b1b';
+      return `
+        <div style="display: flex; justify-content: space-between; padding: 6px 10px; border-radius: var(--radius-sm); background: var(--bg-secondary); font-size: 0.8rem;">
+          <span style="color: var(--text-secondary);">${lbl}</span>
+          <span style="font-weight: 700; color: ${color};">${score}/10</span>
+        </div>
+      `;
+    }).join('');
+
+    // Load Charts
+    renderRadar(skills);
+    renderDonut(trustScore);
+
+    // Trust Details
+    document.getElementById('donut-percentage').innerText = `${trustScore}%`;
+    const trustBadge = document.getElementById('trust-badge');
+    trustBadge.innerText = `${trustScore >= 70 ? 'High' : trustScore >= 40 ? 'Moderate' : 'Low'} Trust`;
+    trustBadge.className = `badge ${trustScore >= 70 ? 'badge-emerald' : trustScore >= 40 ? 'badge-amber' : 'badge-rose'}`;
+
+    // Summary panel
+    const strongestIdx = skills.indexOf(Math.max(...skills));
+    const weakestIdx = skills.indexOf(Math.min(...skills));
+    const summaryRows = [
+      ['Questions Answered', `${answers.length} / 5`],
+      ['Strongest Skill', SKILL_LABELS[strongestIdx]],
+      ['Needs Improvement', SKILL_LABELS[weakestIdx]],
+      ['Language', LANG_LABELS[language] || language],
+      ['Role', ROLE_LABELS[role] || role]
+    ];
+    document.getElementById('summary-details').innerHTML = summaryRows.map(([lbl, val]) => `
+      <div style="display: flex; justify-content: space-between; padding-bottom: 9px; margin-bottom: 9px; border-bottom: 1px solid var(--border); font-size: 0.84rem;">
+        <span style="color: var(--text-secondary);">${lbl}</span>
+        <span style="font-weight: 600; color: var(--text-primary);">${val}</span>
+      </div>
+    `).join('');
+
+    // Answers review list
+    document.getElementById('answer-review-list').innerHTML = answers.map((ans, idx) => {
+      let scoreText = '';
+      if (ans.geminiScores) {
+        const scoresOnly = Object.values(ans.geminiScores).filter(v => typeof v === 'number');
+        if (scoresOnly.length > 0) {
+          const avg = (scoresOnly.reduce((a, b) => a + b, 0) / scoresOnly.length).toFixed(1);
+          scoreText = `
+            <div style="text-align: right; flex-shrink: 0; margin-left: 12px;">
+              <span style="font-family: var(--font-head); font-weight: 800; font-size: 1.15rem; color: var(--blue);">${avg}</span>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">avg</div>
+            </div>
+          `;
+        }
+      }
+
+      return `
+        <div style="padding: 16px 18px; border-radius: var(--radius-md); background: var(--bg-secondary); border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <div style="flex: 1;">
+              <span class="badge badge-gray" style="margin-bottom: 8px; display: inline-block; font-size: 0.7rem;">Q${idx + 1}</span>
+              <p style="color: var(--text-primary); font-weight: 500; font-size: 0.9rem; margin: 0;">${ans.questionText}</p>
+            </div>
+            ${scoreText}
+          </div>
+          <div style="padding: 9px 12px; background: #fff; border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 8px; font-size: 0.85rem; color: var(--text-secondary); border-left: 3px solid var(--blue);">
+            ${ans.transcript || 'No transcript available'}
+          </div>
+          ${(ans.geminiScores && ans.geminiScores.feedback) ? `
+            <p style="font-size: 0.8rem; color: #166534; margin: 0;">
+              <b>Feedback:</b> ${ans.geminiScores.feedback}
+            </p>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderRadar(skills) {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: SKILL_LABELS,
+        datasets: [{
+          data: skills,
+          backgroundColor: 'rgba(17,24,39,0.08)',
+          borderColor: '#111827',
+          pointBackgroundColor: '#111827',
+          pointBorderColor: '#fff',
+          pointRadius: 5,
+          borderWidth: 2,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          r: {
+            min: 0,
+            max: 10,
+            ticks: { stepSize: 2, display: false },
+            grid: { color: '#e5e7eb' },
+            pointLabels: { color: '#4b5563', font: { size: 10, family: 'Inter' } }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  function renderDonut(trust) {
+    const ctx = document.getElementById('donutChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [trust, 100 - trust],
+          backgroundColor: [
+            trust >= 70 ? '#059669' : trust >= 40 ? '#d97706' : '#e11d48',
+            '#f1f5f9',
+          ],
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '78%',
+        plugins: { legend: { display: false }, tooltip: { enabled: false } }
+      }
+    });
+  }
+</script>
+
+<%- include('partials/footer') %>

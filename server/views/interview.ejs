@@ -1,0 +1,540 @@
+<%- include('partials/header') %>
+
+<div id="warning-banner" class="warning-banner" style="display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #EF4444; color: #fff; text-align: center; padding: 12px; font-weight: 600;"></div>
+
+<div class="container" style="padding-top: 24px; padding-bottom: 40px;">
+  <!-- Progress Header -->
+  <div style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.82rem; color: var(--text-muted);">
+      <span>Question <span id="q-index-display">1</span> of 5</span>
+      <span><span id="q-progress-display">0</span>% complete</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width: 0%;"></div></div>
+  </div>
+
+  <!-- Primary Page Views -->
+  <div id="terminated-view" style="display: none; text-align: center; padding: 60px 24px;">
+    <h2 style="color: #EF4444; margin-bottom: 12px;">Interview Terminated</h2>
+    <p id="termination-reason" style="color: var(--text-secondary); margin-bottom: 24px;"></p>
+    <button class="btn btn-outline" onclick="window.location.href='/dashboard'">Back to Dashboard</button>
+  </div>
+
+  <div id="error-view" style="display: none; text-align: center; padding: 60px 24px;">
+    <div class="alert alert-error" id="error-message" style="margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto;"></div>
+    <button class="btn btn-outline" onclick="window.location.href='/dashboard'">Back to Dashboard</button>
+  </div>
+
+  <div id="loading-view" style="text-align: center; padding: 60px 24px;">
+    <div class="spinner" style="margin: 0 auto 20px;"></div>
+    <p>Loading questions & models...</p>
+  </div>
+
+  <!-- Main Interview Layout -->
+  <div id="main-layout" class="interview-layout" style="display: none;">
+    <!-- CAMERA BLOCK -->
+    <div class="layout-camera">
+      <div class="card" style="overflow: hidden; background: #F3F4F6; border: 1px solid #E5E7EB;">
+        <video id="webcam" autoplay muted playsinline style="width: 100%; display: block; min-height: 180px; maxHeight: 240px; object-fit: contain; transform: scaleX(-1);"></video>
+        <div style="padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; background: #fff; border-top: 1px solid var(--border);">
+          <span class="dot dot-blue" id="camera-status-dot"></span>
+          <span id="camera-status-text">Initialising camera...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRUST BLOCK -->
+    <div class="layout-trust">
+      <div class="card" style="padding: 18px 16px; border: 1px solid #E5E7EB;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-weight: 600; font-size: 0.85rem;">Trust Score</span>
+          <span style="font-family: var(--font-head); font-weight: 800; font-size: 1.2rem; color: #000;" id="trust-display">100%</span>
+        </div>
+        <div class="progress-bar" style="height: 6px;">
+          <div id="trust-fill" style="height: 100%; border-radius: var(--radius-full); background: #111827; width: 100%; transition: width 0.4s;"></div>
+        </div>
+        <p style="margin-top: 8px; font-size: 0.75rem;">Face alerts: <span id="alerts-display">0</span></p>
+      </div>
+    </div>
+
+    <!-- QUESTION / ANSWER CONTROLLER -->
+    <div class="layout-main">
+      <div id="evaluation-spinner" style="display: none; text-align: center; padding: 60px 40px;" class="card">
+        <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 20px;"></div>
+        <h3>Evaluating your interview...</h3>
+        <p>Gemini AI is analyzing your performance (20-30s).</p>
+      </div>
+
+      <div id="question-card" class="card" style="padding: 28px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+          <div style="flex: 1;">
+            <span class="badge badge-blue" style="margin-bottom: 12px;">Question <span id="q-number-badge">1</span></span>
+            <h3 id="question-text" style="line-height: 1.6; font-weight: 600;">Loading question...</h3>
+          </div>
+          <div id="timer-box" class="timer-box" style="display: none; text-align: center; padding: 8px 16px; border-radius: 8px; background: #EEF2FF; border: 1px solid #E0E7FF;">
+            <div class="timer-val" id="timer-val">120s</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">remaining</div>
+          </div>
+        </div>
+
+        <div id="recording-alert" class="alert alert-error" style="display: none; margin-top: 16px;">
+          <span class="dot dot-red" style="animation: pulse 1s infinite;"></span>
+          Recording... Speak in <span id="speaking-lang">English</span>
+        </div>
+
+        <div id="countdown-overlay" style="display: none; margin-top: 24px; text-align: center;">
+          <div class="countdown-val" id="countdown-val">3</div>
+          <p>Get ready...</p>
+        </div>
+      </div>
+
+      <!-- REVIEW BLOCK -->
+      <div id="review-card" class="card fade-in" style="display: none; padding: 24px 28px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4>Your Answer</h4>
+          <span class="badge badge-emerald">Transcribed</span>
+        </div>
+        <textarea id="transcript-input" class="textarea" rows="5"></textarea>
+        <div style="display: flex; gap: 10px; marginTop: 16px;">
+          <button class="btn btn-primary" onclick="saveAnswer()">Next Question</button>
+          <button class="btn btn-outline btn-sm" onclick="rerecord()">Re-record</button>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div id="action-area">
+        <button id="start-record-btn" class="btn btn-primary btn-lg" style="width: 100%; display: none;" onclick="startCountdown()">Start Recording</button>
+        <button id="stop-record-btn" class="btn btn-danger btn-lg" style="width: 100%; display: none;" onclick="stopRecording()">Stop Recording</button>
+        <div id="processing-msg" style="display: none; text-align: center; padding: 24px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <div class="spinner"></div> Transcribing...
+        </div>
+      </div>
+    </div>
+
+    <!-- GUIDELINES BLOCK -->
+    <div class="layout-guidelines">
+      <div class="card" style="padding: 16px;">
+        <div style="font-weight: 600; font-size: 0.82rem; margin-bottom: 10px;">Guidelines</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px; font-size: 0.78rem; color: var(--text-secondary);"><div style="width: 4px; height: 4px; border-radius: 50%; background: var(--blue); margin-top: 7px;"></div> Stay in frame</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px; font-size: 0.78rem; color: var(--text-secondary);"><div style="width: 4px; height: 4px; border-radius: 50%; background: var(--blue); margin-top: 7px;"></div> Speak clearly</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px; font-size: 0.78rem; color: var(--text-secondary);"><div style="width: 4px; height: 4px; border-radius: 50%; background: var(--blue); margin-top: 7px;"></div> 120s max</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px; font-size: 0.78rem; color: var(--text-secondary);"><div style="width: 4px; height: 4px; border-radius: 50%; background: var(--blue); margin-top: 7px;"></div> Selected language only</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .warning-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #EF4444; color: #fff; text-align: center; padding: 12px; font-weight: 600; }
+  .timer-val { font-size: 1.5rem; font-weight: 800; color: var(--brand-primary); }
+  .countdown-val { font-size: 3.5rem; font-weight: 800; color: var(--brand-primary); }
+  
+  .interview-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-areas: 
+      "main camera"
+      "main trust"
+      "main guidelines";
+    gap: 20px;
+  }
+  .layout-main { grid-area: main; }
+  .layout-camera { grid-area: camera; }
+  .layout-trust { grid-area: trust; }
+  .layout-guidelines { grid-area: guidelines; }
+
+  @media (max-width: 768px) {
+    .interview-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .layout-camera { order: 1; }
+    .layout-trust { order: 2; }
+    .layout-main { order: 3; }
+    .layout-guidelines { order: 4; }
+  }
+</style>
+
+<!-- Load MediaPipe Face Detector from browser-compatible JS CDN -->
+<script type="module">
+  import { FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.js";
+
+  const LANG_LABELS = { en: 'English', hi: 'Hindi', kn: 'Kannada' };
+  const TOTAL_QUESTIONS = 5;
+  const ANSWER_TIME = 120;
+  const LOOK_AWAY_THRESHOLD = 2000;
+
+  let sessionId = '';
+  let name = '';
+  let role = '';
+  let language = '';
+  let token = '';
+
+  let questions = [];
+  let qIndex = 0;
+  let phase = 'loading';
+  let trustScore = 100;
+  let faceAlerts = 0;
+  let answers = [];
+
+  let stream = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let timerId = null;
+  let lookAwayStart = null;
+  let lastPenaltyTime = -1;
+  let detector = null;
+
+  // Retrieve parameters from SessionStorage
+  (async function init() {
+    token = localStorage.getItem('hv_token');
+    sessionId = sessionStorage.getItem('hv_session_id');
+    name = sessionStorage.getItem('hv_candidate_name');
+    role = sessionStorage.getItem('hv_role');
+    language = sessionStorage.getItem('hv_language');
+
+    if (!token || !sessionId) {
+      window.location.href = '/dashboard';
+      return;
+    }
+
+    document.getElementById('speaking-lang').innerText = LANG_LABELS[language] || 'English';
+
+    try {
+      // 1. Fetch Questions
+      const res = await fetch(`/api/questions?role=${role}&language=${language}&sessionId=${sessionId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to load questions.');
+      
+      questions = data.questions;
+
+      // 2. Set Up camera and MediaPipe
+      await initCameraAndModels();
+      
+      // Update UI
+      phase = 'ready';
+      document.getElementById('loading-view').style.display = 'none';
+      document.getElementById('main-layout').style.display = 'grid';
+      showQuestion();
+    } catch (e) {
+      document.getElementById('loading-view').style.display = 'none';
+      document.getElementById('error-message').innerText = e.message;
+      document.getElementById('error-view').style.display = 'block';
+    }
+  })();
+
+  async function initCameraAndModels() {
+    const video = document.getElementById('webcam');
+    
+    // UserMedia Stream
+    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    video.srcObject = stream;
+
+    try {
+      const vision = await FilesetResolver.forVisionTasks(
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm'
+      );
+      detector = await FaceDetector.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite',
+          delegate: 'GPU'
+        },
+        runningMode: 'VIDEO',
+        minDetectionConfidence: 0.4
+      });
+
+      // Start Face Detection Loop
+      requestAnimationFrame(detectionLoop);
+      document.getElementById('camera-status-text').innerText = 'Face verified';
+    } catch (e) {
+      console.warn('MediaPipe initialization failed:', e);
+      document.getElementById('camera-status-text').innerText = 'Camera active';
+    }
+  }
+
+  function showWarning(msg) {
+    const banner = document.getElementById('warning-banner');
+    banner.innerText = msg;
+    banner.style.display = 'block';
+    setTimeout(() => { banner.style.display = 'none'; }, 3000);
+  }
+
+  function terminateInterview(reason) {
+    phase = 'terminated';
+    clearInterval(timerId);
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+    }
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+    }
+
+    document.getElementById('main-layout').style.display = 'none';
+    document.getElementById('termination-reason').innerText = reason;
+    document.getElementById('terminated-view').style.display = 'block';
+  }
+
+  function detectionLoop() {
+    if (phase === 'terminated' || phase === 'submitting') return;
+    const video = document.getElementById('webcam');
+    
+    if (video.readyState === 4 && detector) {
+      const now = performance.now();
+      try {
+        const result = detector.detectForVideo(video, now);
+        const count = result.detections.length;
+        const statusText = document.getElementById('camera-status-text');
+        const statusDot = document.getElementById('camera-status-dot');
+
+        if (count === 0) {
+          if (!lookAwayStart) lookAwayStart = now;
+          const awayDuration = now - lookAwayStart;
+          if (awayDuration > 500) {
+            statusText.innerText = 'Face not detected';
+            statusDot.className = 'dot dot-amber';
+          }
+
+          if (awayDuration > LOOK_AWAY_THRESHOLD && now - lastPenaltyTime > 1500) {
+            lastPenaltyTime = now;
+            faceAlerts++;
+            document.getElementById('alerts-display').innerText = faceAlerts;
+            const penalty = faceAlerts <= 3 ? 5 : 10;
+            trustScore = Math.max(0, trustScore - penalty);
+            updateTrustDisplay();
+            showWarning('Look at the camera! Trust score reduced.');
+            if (trustScore <= 0) {
+              terminateInterview('Interview terminated: Trust score reached 0.');
+            }
+          }
+        } else if (count > 1) {
+          lookAwayStart = null;
+          statusText.innerText = 'Multiple faces detected';
+          statusDot.className = 'dot dot-amber';
+          if (now - lastPenaltyTime > 1500) {
+            lastPenaltyTime = now;
+            faceAlerts++;
+            document.getElementById('alerts-display').innerText = faceAlerts;
+            trustScore = Math.max(0, trustScore - 8);
+            updateTrustDisplay();
+            showWarning('Only you should be in the frame!');
+            if (trustScore <= 0) {
+              terminateInterview('Interview terminated: Integrity violation.');
+            }
+          }
+        } else {
+          lookAwayStart = null;
+          statusText.innerText = 'Face verified';
+          statusDot.className = 'dot dot-blue';
+        }
+      } catch (err) {
+        console.error('Detection error:', err);
+      }
+    }
+    requestAnimationFrame(detectionLoop);
+  }
+
+  function updateTrustDisplay() {
+    document.getElementById('trust-display').innerText = `${trustScore}%`;
+    const fill = document.getElementById('trust-fill');
+    fill.style.width = `${trustScore}%`;
+    fill.style.background = trustScore >= 70 ? '#111827' : '#000000';
+  }
+
+  function showQuestion() {
+    phase = 'ready';
+    document.getElementById('q-index-display').innerText = qIndex + 1;
+    document.getElementById('q-number-badge').innerText = qIndex + 1;
+    document.getElementById('question-text').innerText = questions[qIndex];
+    
+    const percentage = Math.round((qIndex / TOTAL_QUESTIONS) * 100);
+    document.getElementById('q-progress-display').innerText = percentage;
+    document.getElementById('progress-fill').style.width = `${percentage}%`;
+
+    // Toggle button views
+    document.getElementById('timer-box').style.display = 'none';
+    document.getElementById('recording-alert').style.display = 'none';
+    document.getElementById('review-card').style.display = 'none';
+    document.getElementById('countdown-overlay').style.display = 'none';
+
+    document.getElementById('start-record-btn').style.display = 'block';
+    document.getElementById('stop-record-btn').style.display = 'none';
+    document.getElementById('processing-msg').style.display = 'none';
+  }
+
+  window.startCountdown = function() {
+    phase = 'countdown';
+    document.getElementById('start-record-btn').style.display = 'none';
+    const countdownOverlay = document.getElementById('countdown-overlay');
+    const countdownVal = document.getElementById('countdown-val');
+    countdownOverlay.style.display = 'block';
+
+    let count = 3;
+    countdownVal.innerText = count;
+
+    const interval = setInterval(() => {
+      count--;
+      countdownVal.innerText = count;
+      if (count <= 0) {
+        clearInterval(interval);
+        countdownOverlay.style.display = 'none';
+        startRecording();
+      }
+    }, 1000);
+  }
+
+  function startRecording() {
+    if (!stream) return;
+    audioChunks = [];
+    phase = 'recording';
+    
+    document.getElementById('timer-box').style.display = 'block';
+    document.getElementById('recording-alert').style.display = 'block';
+    document.getElementById('stop-record-btn').style.display = 'block';
+
+    let options = {};
+    if (MediaRecorder.isTypeSupported('audio/webm')) options = { mimeType: 'audio/webm' };
+    else if (MediaRecorder.isTypeSupported('audio/mp4')) options = { mimeType: 'audio/mp4' };
+
+    try {
+      const audioTracks = stream.getAudioTracks();
+      if (audioTracks.length === 0) {
+        alert('No microphone detected!');
+        return;
+      }
+      const audioStream = new MediaStream(audioTracks);
+      mediaRecorder = new MediaRecorder(audioStream, options);
+      mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+      mediaRecorder.start(500);
+
+      let timeLeft = ANSWER_TIME;
+      document.getElementById('timer-val').innerText = `${timeLeft}s`;
+
+      timerId = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer-val').innerText = `${timeLeft}s`;
+        if (timeLeft <= 0) {
+          stopRecording();
+        }
+      }, 1000);
+    } catch (e) {
+      alert('Recording failed to start: ' + e.message);
+    }
+  }
+
+  window.stopRecording = function() {
+    clearInterval(timerId);
+    phase = 'processing';
+    
+    document.getElementById('timer-box').style.display = 'none';
+    document.getElementById('recording-alert').style.display = 'none';
+    document.getElementById('stop-record-btn').style.display = 'none';
+    document.getElementById('processing-msg').style.display = 'flex';
+
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+    }
+
+    setTimeout(processAudio, 600);
+  }
+
+  async function processAudio() {
+    const mimeType = audioChunks[0]?.type || 'audio/webm';
+    const blob = new Blob(audioChunks, { type: mimeType });
+    let transcriptText = '';
+
+    if (blob.size > 500) {
+      try {
+        const fd = new FormData();
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        fd.append('audio', blob, `answer.${ext}`);
+        fd.append('language', language);
+        
+        const response = await fetch('/api/transcribe', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: fd
+        });
+        const data = await response.json();
+        transcriptText = data.transcript || '';
+      } catch (e) {
+        transcriptText = '[Transcription failed]';
+      }
+    } else {
+      transcriptText = '[No audio recorded]';
+    }
+
+    phase = 'review';
+    document.getElementById('processing-msg').style.display = 'none';
+    document.getElementById('transcript-input').value = transcriptText;
+    document.getElementById('review-card').style.display = 'block';
+  }
+
+  window.rerecord = function() {
+    document.getElementById('review-card').style.display = 'none';
+    startCountdown();
+  }
+
+  window.saveAnswer = function() {
+    const transcript = document.getElementById('transcript-input').value;
+    answers.push({
+      questionIndex: qIndex,
+      questionText: questions[qIndex],
+      transcript,
+      language
+    });
+
+    qIndex++;
+    if (qIndex >= TOTAL_QUESTIONS) {
+      finishInterview();
+    } else {
+      showQuestion();
+    }
+  }
+
+  async function finishInterview() {
+    phase = 'submitting';
+    document.getElementById('question-card').style.display = 'none';
+    document.getElementById('review-card').style.display = 'none';
+    document.getElementById('action-area').style.display = 'none';
+    document.getElementById('evaluation-spinner').style.display = 'block';
+
+    try {
+      const response = await fetch('/api/evaluate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          sessionId,
+          name,
+          role,
+          language,
+          email: sessionStorage.getItem('hv_user') ? JSON.parse(localStorage.getItem('hv_user')).email : '',
+          answers,
+          faceAlerts,
+          trustScore
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Submission failed.');
+
+      // Save results in sessionStorage for results page
+      sessionStorage.setItem('hv_result_data', JSON.stringify(data));
+      window.location.href = '/result';
+    } catch (e) {
+      alert('Submission failed: ' + e.message);
+      phase = 'review';
+      document.getElementById('evaluation-spinner').style.display = 'none';
+      document.getElementById('question-card').style.display = 'block';
+      document.getElementById('review-card').style.display = 'block';
+      document.getElementById('action-area').style.display = 'block';
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>

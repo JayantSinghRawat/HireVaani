@@ -1,0 +1,190 @@
+<%- include('partials/header') %>
+
+<div class="auth-page">
+  <div class="auth-card fade-in">
+    
+    <!-- Left panel -->
+    <div class="auth-sidebar">
+      <div class="fade-in-1">
+        <div class="auth-brand">
+          <div class="brand-icon">H</div>
+          <span class="brand-text">HireVaani</span>
+        </div>
+        <h2 class="sidebar-title">Welcome Back</h2>
+        <p class="sidebar-desc">
+          Login to your account to continue. Whether you are an organizer managing candidates or a user taking an interview, HireVaani has you covered with AI-powered insights.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="auth-form-container">
+      <div class="auth-form-box">
+        <div class="fade-in-2" style="margin-bottom: 32px;">
+          <h2 style="margin-bottom: 8px; fontSize: 1.5rem; color: var(--brand-primary);">Sign In</h2>
+          <p style="font-size: 0.9rem; color: var(--text-secondary);">Access your dashboard with your credentials.</p>
+        </div>
+
+        <div class="fade-in-3">
+          <form id="login-form">
+            <div style="margin-bottom: 20px;">
+              <label class="label">Email / Username</label>
+              <input
+                class="input" type="text" id="email" placeholder="name@example.com or admin"
+                required autofocus
+              />
+            </div>
+            <div style="margin-bottom: 28px;">
+              <label class="label">Password</label>
+              <input
+                class="input" type="password" id="password" placeholder="Enter password"
+                required
+              />
+            </div>
+
+            <div id="error-alert" class="alert alert-error" style="display: none; margin-bottom: 20px;"></div>
+
+            <button class="btn btn-primary btn-lg" type="submit" id="submit-btn" style="width: 100%;">
+              Sign In
+            </button>
+          </form>
+
+          <div style="margin-top: 24px; text-align: center;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Don't have an account? </span>
+            <a href="/signup" style="font-size: 0.85rem; color: var(--brand-primary); font-weight: 600;">Create an account</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .auth-page {
+    min-height: calc(100vh - 168px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    padding: 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+  }
+  .auth-sidebar {
+    flex: 1;
+    background: #fff;
+    padding: 60px 48px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .auth-form-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    background: var(--bg-secondary);
+  }
+  .auth-form-box {
+    width: 100%;
+    max-width: 340px;
+  }
+  .auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--brand-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+  }
+  .brand-text {
+    color: var(--brand-primary);
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+  .sidebar-title {
+    font-size: 1.8rem;
+    margin-bottom: 16px;
+    color: var(--brand-primary);
+  }
+  .sidebar-desc {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 850px) {
+    .auth-sidebar {
+      display: none !important;
+    }
+    .auth-card {
+      max-width: 440px;
+    }
+    .auth-form-container {
+      padding: 40px 24px;
+    }
+  }
+</style>
+
+<script>
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorAlert = document.getElementById('error-alert');
+    const submitBtn = document.getElementById('submit-btn');
+
+    errorAlert.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Signing in...';
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Invalid credentials.');
+      }
+
+      localStorage.setItem('hv_token', data.token);
+      localStorage.setItem('hv_user', JSON.stringify(data.user));
+
+      if (data.user.role === 'organizer') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/dashboard';
+      }
+    } catch (err) {
+      errorAlert.innerText = err.message;
+      errorAlert.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Sign In';
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

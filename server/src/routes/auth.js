@@ -21,17 +21,18 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Invalid role' });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
     const hashedPassword = await bcrypt.hash(password, 10);
 
     if (isMongoConnected()) {
-      const existingUser = await User.findOne({ email });
+      const existingUser = await User.findOne({ email: normalizedEmail });
       if (existingUser) return res.status(400).json({ error: 'Email already in use' });
       
-      const user = new User({ name, email, password: hashedPassword, role });
+      const user = new User({ name, email: normalizedEmail, password: hashedPassword, role });
       await user.save();
     } else {
-      if (usersStore.has(email)) return res.status(400).json({ error: 'Email already in use' });
-      usersStore.set(email, { name, email, password: hashedPassword, role });
+      if (usersStore.has(normalizedEmail)) return res.status(400).json({ error: 'Email already in use' });
+      usersStore.set(normalizedEmail, { name, email: normalizedEmail, password: hashedPassword, role });
     }
 
     res.status(201).json({ message: 'User registered successfully' });
@@ -44,18 +45,20 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    const cleanEmail = email.trim();
     
     // Support legacy hardcoded admin for backward compatibility
-    if (email === ADMIN_USER && password === ADMIN_PASS) {
-      const token = jwt.sign({ email, name: 'Admin', role: 'organizer' }, SECRET, { expiresIn: '8h' });
-      return res.json({ token, user: { email, name: 'Admin', role: 'organizer' } });
+    if (cleanEmail === ADMIN_USER && password === ADMIN_PASS) {
+      const token = jwt.sign({ email: cleanEmail, name: 'Admin', role: 'organizer' }, SECRET, { expiresIn: '8h' });
+      return res.json({ token, user: { email: cleanEmail, name: 'Admin', role: 'organizer' } });
     }
 
+    const normalizedEmail = cleanEmail.toLowerCase();
     let user;
     if (isMongoConnected()) {
-      user = await User.findOne({ email });
+      user = await User.findOne({ email: normalizedEmail });
     } else {
-      user = usersStore.get(email);
+      user = usersStore.get(normalizedEmail);
     }
 
     if (!user) {

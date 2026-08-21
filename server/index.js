@@ -1,8 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
+
+// ── EJS Template Engine & Static Assets ───────────────────
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Middleware ──────────────────────────────────────────
 app.use(cors({ 
@@ -12,7 +18,10 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// ── Routes ──────────────────────────────────────────────
+// ── Pages Routes ─────────────────────────────────────────
+app.use('/', require('./src/routes/pages'));
+
+// ── API Routes ──────────────────────────────────────────
 app.use('/api/questions',  require('./src/routes/questions'));
 app.use('/api/session',    require('./src/routes/session'));
 app.use('/api/transcribe', require('./src/routes/transcribe'));

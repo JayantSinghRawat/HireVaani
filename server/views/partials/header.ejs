@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HireVaani — AI-Led Multilingual Assessment Platform</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- ChartJS for Radar Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar" style="justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <a href="/" class="navbar-brand" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #111827; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800;">H</div>
+        <span>HireVaani</span>
+      </a>
+    </div>
+    
+    <div id="nav-links" style="display: flex; gap: 16px; align-items: center;">
+      <!-- Dynamic Links populated via Client JS -->
+    </div>
+  </nav>
+
+  <script>
+    // Client-side authentication routing & navigation helper
+    (function() {
+      const token = localStorage.getItem('hv_token');
+      const userStr = localStorage.getItem('hv_user');
+      const navLinks = document.getElementById('nav-links');
+      
+      if (token && userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          let dashboardUrl = user.role === 'organizer' ? '/admin' : '/dashboard';
+          
+          navLinks.innerHTML = `
+            <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);">Hello, ${user.name}</span>
+            <a href="${dashboardUrl}" class="btn btn-ghost btn-sm" style="text-decoration: none;">Dashboard</a>
+            <button onclick="logout()" class="btn btn-outline btn-sm">Logout</button>
+          `;
+        } catch (e) {
+          localStorage.removeItem('hv_token');
+          localStorage.removeItem('hv_user');
+        }
+      } else {
+        // Only show Login/Signup on landing, login, and signup pages
+        const path = window.location.pathname;
+        if (path === '/' || path === '/login' || path === '/signup') {
+          navLinks.innerHTML = `
+            <a href="/login" class="btn btn-ghost btn-sm" style="text-decoration: none;">Login</a>
+            <a href="/signup" class="btn btn-primary btn-sm" style="text-decoration: none;">Sign Up</a>
+          `;
+        }
+      }
+    })();
+
+    function logout() {
+      localStorage.removeItem('hv_token');
+      localStorage.removeItem('hv_user');
+      window.location.href = '/login';
+    }
+  </script>

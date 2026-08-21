@@ -1,0 +1,311 @@
+<%- include('partials/header') %>
+
+<main class="container" style="padding-top: 40px; padding-bottom: 60px;">
+  <div style="margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 8px;">Welcome back, <span id="welcome-name">Candidate</span></h1>
+      <p style="color: var(--text-secondary);">Manage your interviews and track your AI performance insights.</p>
+    </div>
+    <span class="badge badge-blue" style="font-size: 0.85rem; padding: 6px 12px; font-weight: 600;">Candidate Dashboard</span>
+  </div>
+
+  <!-- Section 1: Upcoming -->
+  <section style="margin-bottom: 60px;">
+    <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px;">Upcoming Interviews</h2>
+    <div id="upcoming-loading" class="spinner" style="margin: 20px auto;"></div>
+    <div id="upcoming-empty" style="display: none; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 40px; text-align: center;">
+      <p style="color: var(--text-muted); margin: 0;">No new interviews available for your role at this time.</p>
+    </div>
+    <div id="upcoming-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;"></div>
+  </section>
+
+  <!-- Section 2: Submitted -->
+  <section>
+    <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px;">Submitted Interviews</h2>
+    <div id="history-loading" class="spinner" style="margin: 20px auto;"></div>
+    <div id="history-empty" style="display: none; background: #fff; border: 1px dashed var(--border-strong); border-radius: 12px; padding: 40px; text-align: center;">
+      <p style="color: var(--text-muted); margin: 0;">Your completed interviews will appear here.</p>
+    </div>
+    <div id="history-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;"></div>
+  </section>
+</main>
+
+<!-- Quick Start Modal -->
+<div id="quickstart-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 style="margin: 0;">Start Session</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeQuickStart()" style="padding: 4px 8px;">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="start-form">
+        <div style="margin-bottom: 20px;">
+          <label class="label">Full Name</label>
+          <input type="text" id="form-name" class="input" required />
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label class="label">Role</label>
+          <input type="text" id="form-role-display" class="input" readonly style="background: var(--bg-hover); cursor: not-allowed;" />
+          <input type="hidden" id="form-role" />
+        </div>
+        <div style="margin-bottom: 24px;">
+          <label class="label" style="margin-bottom: 8px;">Language</label>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="language-grid">
+            <button type="button" class="btn btn-outline" onclick="selectLanguage('en')" id="lang-en">English</button>
+            <button type="button" class="btn btn-outline" onclick="selectLanguage('hi')" id="lang-hi">Hindi</button>
+            <button type="button" class="btn btn-outline" onclick="selectLanguage('kn')" id="lang-kn">Kannada</button>
+          </div>
+        </div>
+        <div id="modal-error" class="alert alert-error" style="display: none; margin-bottom: 20px;"></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeQuickStart()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitStartForm()" id="start-submit-btn">Start Session</button>
+    </div>
+  </div>
+</div>
+
+<!-- Details Modal -->
+<div id="details-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 style="margin: 0;" id="details-title">Interview Details</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeDetails()" style="padding: 4px 8px;">✕</button>
+    </div>
+    <div class="modal-body" style="gap: 16px;">
+      <p><b>Company:</b> <span id="detail-company"></span></p>
+      <p><b>Role:</b> <span id="detail-role"></span></p>
+      <p><b>Starts:</b> <span id="detail-starts"></span></p>
+      <p><b>Ends:</b> <span id="detail-ends"></span></p>
+      <p><b>Description:</b></p>
+      <p id="detail-desc" style="white-space: pre-wrap; font-size: 0.9rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border);"></p>
+      <p><b>Instructions:</b></p>
+      <p id="detail-instructions" style="white-space: pre-wrap; font-size: 0.9rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border);"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeDetails()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ROLES = {
+    'software_engineer': 'Software Engineer',
+    'data_analyst': 'Data Analyst',
+    'marketing_executive': 'Marketing Executive',
+    'hr_executive': 'HR Executive',
+    'sales_executive': 'Sales Executive',
+    'customer_support': 'Customer Support'
+  };
+
+  let token = '';
+  let user = {};
+  let selectedLanguageCode = '';
+  let activeInterviews = [];
+
+  // Protect route & load content
+  (async function init() {
+    token = localStorage.getItem('hv_token');
+    const userStr = localStorage.getItem('hv_user');
+    
+    if (!token || !userStr) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      user = JSON.parse(userStr);
+      if (user.role === 'organizer') {
+        window.location.href = '/admin';
+        return;
+      }
+      
+      document.getElementById('welcome-name').innerText = user.name.split(' ')[0];
+      document.getElementById('form-name').value = user.name;
+      
+      await loadDashboardData();
+    } catch (e) {
+      console.error(e);
+      window.location.href = '/login';
+    }
+  })();
+
+  async function loadDashboardData() {
+    try {
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      // Fetch History
+      const resHist = await fetch('/api/candidates/history', { headers });
+      const history = await resHist.json();
+      
+      // Fetch Interviews
+      const resIv = await fetch('/api/interviews', { headers });
+      const interviews = await resIv.json();
+      
+      // Map roles completed
+      const submittedRoles = new Set(history.map(h => h.role));
+      const upcoming = interviews.filter(iv => !submittedRoles.has(iv.role));
+      
+      activeInterviews = upcoming;
+
+      // Populate history
+      document.getElementById('history-loading').style.display = 'none';
+      if (history.length === 0) {
+        document.getElementById('history-empty').style.display = 'block';
+      } else {
+        const historyList = document.getElementById('history-list');
+        historyList.innerHTML = history.map(h => `
+          <div class="card" style="background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden;">
+            <div style="padding: 24px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                <div>
+                  <h3 style="font-size: 1rem; font-weight: 700; margin: 0;">${ROLES[h.role] || h.role}</h3>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Completed: ${new Date(h.createdAt).toLocaleDateString()}</div>
+                </div>
+                <span class="badge badge-gray">Submitted</span>
+              </div>
+              <div style="display: flex; gap: 12px;">
+                <div style="flex: 1; text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                  <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Score</div>
+                  <div style="font-size: 1.1rem; font-weight: 800;">${h.overallScore || '—'}/10</div>
+                </div>
+                <div style="flex: 1; text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                  <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Trust</div>
+                  <div style="font-size: 1.1rem; font-weight: 800;">${h.trustScore || '—'}%</div>
+                </div>
+              </div>
+            </div>
+            <div style="padding: 12px 24px; background: var(--bg-secondary); border-top: 1px solid var(--border);">
+              <a href="/result?id=${h.sessionId}" style="display: block; text-align: center; fontSize: 0.85rem; font-weight: 600; color: #4338CA; text-decoration: none;">View Full Result →</a>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Populate upcoming
+      document.getElementById('upcoming-loading').style.display = 'none';
+      if (upcoming.length === 0) {
+        document.getElementById('upcoming-empty').style.display = 'block';
+      } else {
+        const upcomingList = document.getElementById('upcoming-list');
+        upcomingList.innerHTML = upcoming.map(iv => {
+          const isNotStarted = new Date() < new Date(iv.startDate || iv.createdAt);
+          const btnBg = isNotStarted ? '#E5E7EB' : '#111827';
+          const btnColor = isNotStarted ? '#9CA3AF' : '#fff';
+          const btnCursor = isNotStarted ? 'not-allowed' : 'pointer';
+          const btnText = isNotStarted ? 'Not Started' : 'Start Now';
+          
+          return `
+            <div class="card" style="background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm);">
+              <div style="padding: 24px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                  <div>
+                    <h3 style="font-size: 1.05rem; font-weight: 700; margin: 0;">${ROLES[iv.role] || iv.role}</h3>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">${iv.companyName}</div>
+                  </div>
+                  <span class="badge badge-blue">${iv.status || 'Active'}</span>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; justify-content: space-between; fontSize: 0.8rem;">
+                    <span style="color: var(--text-secondary);">Starting:</span>
+                    <b style="color: #000;">${new Date(iv.startDate || iv.createdAt).toLocaleDateString()}</b>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; fontSize: 0.8rem;">
+                    <span style="color: var(--text-secondary);">Deadline:</span>
+                    <b style="color: #000;">${new Date(iv.endDate || iv.date).toLocaleDateString()}</b>
+                  </div>
+                </div>
+              </div>
+              <div style="padding: 16px 24px; border-top: 1px solid var(--border); background: var(--bg-secondary); display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1;" onclick="viewDetails('${iv.id || iv._id}')">Details</button>
+                <button class="btn" style="flex: 1; background: ${btnBg}; color: ${btnColor}; cursor: ${btnCursor}; border: none;" onclick="openQuickStart('${iv.role}')" ${isNotStarted ? 'disabled' : ''}>${btnText}</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function viewDetails(id) {
+    const iv = activeInterviews.find(i => (i.id || i._id) === id);
+    if (!iv) return;
+    document.getElementById('detail-company').innerText = iv.companyName;
+    document.getElementById('detail-role').innerText = ROLES[iv.role] || iv.role;
+    document.getElementById('detail-starts').innerText = new Date(iv.startDate || iv.createdAt).toLocaleDateString();
+    document.getElementById('detail-ends').innerText = new Date(iv.endDate || iv.date).toLocaleDateString();
+    document.getElementById('detail-desc').innerText = iv.description || 'No description provided.';
+    document.getElementById('detail-instructions').innerText = iv.instructions || 'No specific instructions provided.';
+    document.getElementById('details-modal').style.display = 'flex';
+  }
+
+  function closeDetails() {
+    document.getElementById('details-modal').style.display = 'none';
+  }
+
+  function openQuickStart(role) {
+    document.getElementById('form-role').value = role;
+    document.getElementById('form-role-display').value = ROLES[role] || role;
+    document.getElementById('quickstart-modal').style.display = 'flex';
+    selectLanguage('en'); // Default to English
+  }
+
+  function closeQuickStart() {
+    document.getElementById('quickstart-modal').style.display = 'none';
+  }
+
+  function selectLanguage(lang) {
+    selectedLanguageCode = lang;
+    ['en', 'hi', 'kn'].forEach(l => {
+      document.getElementById(`lang-${l}`).className = l === lang ? 'btn btn-primary' : 'btn btn-outline';
+    });
+  }
+
+  async function submitStartForm() {
+    const name = document.getElementById('form-name').value.trim();
+    const role = document.getElementById('form-role').value;
+    const errorAlert = document.getElementById('modal-error');
+    const submitBtn = document.getElementById('start-submit-btn');
+
+    if (!name) {
+      errorAlert.innerText = 'Name is required.';
+      errorAlert.style.display = 'block';
+      return;
+    }
+
+    errorAlert.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Starting...';
+
+    try {
+      const response = await fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email: user.email, role, language: selectedLanguageCode })
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to create session.');
+      }
+
+      // Save parameters in sessionStorage for the interview page
+      sessionStorage.setItem('hv_session_id', data.sessionId);
+      sessionStorage.setItem('hv_candidate_name', name);
+      sessionStorage.setItem('hv_role', role);
+      sessionStorage.setItem('hv_language', selectedLanguageCode);
+
+      window.location.href = '/interview';
+    } catch (e) {
+      errorAlert.innerText = e.message;
+      errorAlert.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Start Session';
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>
