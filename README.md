@@ -152,7 +152,6 @@ This project is built using a combination of manual developer implementation and
 
 ### Built Using Vibe Coding (AI Collaboration on GitHub):
 *   **MediaPipe Proctoring:** The face-tracking and real-time gaze detection proctoring system using MediaPipe.
-*   **Initial React UI:** The initial frontend setup in React/Vite (which was later migrated to EJS).
-*   **Express Boilerplate & Configurations:** General project configurations, development scripts, and tooling integrations.
+
 
 
